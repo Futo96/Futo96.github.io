@@ -133,6 +133,9 @@
             border: 2px solid #00f0ff;
             border-radius: 10px;
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.3);
+            /* Add this to force centering if content overflows */
+            margin: auto;
+            top: 0; bottom: 0; left: 0; right: 0; /* Ensures margin:auto works with position:relative */
         }
 
         #gameCanvas {
@@ -146,15 +149,16 @@
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: 100vh; /* Use 100vh for explicit viewport height */
             background: rgba(0, 0, 0, 0.95);
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            justify-content: flex-start; /* Ensure content starts from top */
+            align-items: center;     /* Horizontal centering */
             z-index: 1000;
-            overflow: hidden;
+            overflow-y: hidden; /* Overlay itself should not scroll, content will */
             padding: 0;
+            padding-bottom: 70px; /* Added to account for fixed footer's height */
             box-sizing: border-box;
         }
         
@@ -167,10 +171,7 @@
         
         /* Scrollable menus for complex content */
         .menu-overlay.scrollable {
-            justify-content: center;
-            padding: 0;
-            overflow-y: auto;
-            height: 100vh;
+            /* This class no longer needs explicit justify-content, padding, overflow-y, or height as it inherits from .menu-overlay */
         }
         
         /* Ensure all menus can scroll */
@@ -192,18 +193,23 @@
             background: rgba(0, 240, 255, 0.8);
         }
         
-        /* Content container for proper spacing */
         .menu-content {
             display: flex;
             flex-direction: column;
             align-items: center;
             width: 100%;
             max-width: 800px;
-            flex: 1;
-            padding: 20px 10px 80px 10px;
+            flex: 1; /* Takes up all available vertical space in its flex parent */
+            padding: 10px;
             box-sizing: border-box;
-            overflow-y: auto;
-            min-height: calc(100vh - 100px);
+            overflow-y: auto; /* This element is now explicitly scrollable */
+            min-height: 0; /* Crucial for flex item with overflow to actually shrink and scroll */
+            /* Removed max-height, as flex:1 with min-height:0 handles this */
+        }
+        /* Default max-width for elements within menu-content to prevent horizontal overflow */
+        .menu-content > * {
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .menu-title {
@@ -324,6 +330,19 @@
             box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
         }
 
+        .sortable-header:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .sortable-header.sorted-asc::after {
+            content: ' ▲';
+            font-size: 0.8em;
+        }
+        .sortable-header.sorted-desc::after {
+            content: ' ▼';
+            font-size: 0.8em;
+        }
+
         .inhibitor-card.disabled {
             opacity: 0.5;
             cursor: not-allowed;
@@ -407,9 +426,13 @@
 
         /* Music Controls - Draggable */
         .music-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            right: auto; /* Ensure it doesn't conflict with left */
+            height: 60px; /* Increased height */
+            width: 450px; /* Increased width */
+            z-index: 1200;
             display: flex;
             gap: 8px;
             align-items: center;
@@ -417,15 +440,13 @@
             padding: 8px 12px;
             border-radius: 8px;
             border: 2px solid #00f0ff;
-            z-index: 1200;
-            max-width: 400px;
+            max-width: 800px; /* Increased max-width for resizing */
             font-size: 12px;
             user-select: none;
             resize: both;
             overflow: auto;
             min-width: 260px;
             min-height: 44px;
-            width: 360px;
         }
         
 #preStartOverlay .menu-content {
@@ -638,18 +659,82 @@
         }
         
         /* Game Legend */
-        .game-legend {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 2px solid #00f0ff;
-            border-radius: 8px;
-            padding: 10px;
-            font-size: 12px;
-            color: #00f0ff;
-            max-width: 200px;
-            z-index: 150;
+                                .game-legend {
+                                    position: fixed; /* Use fixed for consistent positioning */
+                                    bottom: 120px; /* Raised position for both */
+                                    top: auto; /* Ensure no conflict with bottom */
+                                    background: rgba(0, 0, 0, 0.8);
+                                    border: 2px solid #00f0ff;
+                                    border-radius: 8px;
+                                    padding: 10px;
+                                    font-size: 12px;
+                                    color: #00f0ff;
+                                    z-index: 150;
+                                    max-height: calc(100vh - 120px); /* Max height to adapt to screen without overlap */
+                                    overflow-y: auto; /* Re-enable scrolling if too tall */
+                                    width: 350px; /* Fixed width for better readability */
+                                }                        /* Specific positioning for left and right legends */
+                                #gameLegendLeft {
+                                    left: 10px;
+                                    right: auto;
+                                    transform: translateX(10%); /* Push inward slightly */
+                                }
+                                #gameLegendRight {
+                                    right: 10px;
+                                    left: auto;
+                                    transform: translateX(-10%); /* Push inward slightly */
+                                }                .legend-content-scrollable {
+                    /* Removed max-height and overflow-y to allow dynamic sizing */
+                    padding-right: 5px; /* Space for scrollbar (if it ever appears) */
+                }
+                .legend-content-scrollable::-webkit-scrollbar {
+                    width: 5px;
+                }
+                .legend-content-scrollable::-webkit-scrollbar-track {
+                    background: rgba(0, 240, 255, 0.1);
+                    border-radius: 3px;
+                }
+                .legend-content-scrollable::-webkit-scrollbar-thumb {
+                    background: rgba(0, 240, 255, 0.4);
+                    border-radius: 3px;
+                }
+                .game-legend h3 {
+                    color: #00f0ff;
+                    text-align: center;
+                    margin-bottom: 10px;
+                    font-size: 1.1rem;
+                }        .game-legend h4 {
+            color: #7c3aed; /* Purple */
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.3);
+            padding-bottom: 3px;
+        }
+        .game-legend ul {
+            list-style: none;
+            padding-left: 10px;
+        }
+        .game-legend li {
+            margin-bottom: 3px;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        .ally-status-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .ally-status-item {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            padding: 5px 8px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         /* HUD Toggle Button */
@@ -830,10 +915,27 @@
                 grid-template-columns: repeat(2, 1fr);
                 max-width: 800px;
             }
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <div id="damageOverlay" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255, 0, 0, 0.5); z-index: 2000; display: none; pointer-events: none;"></div>
+    <div id="auth-container" style="position: fixed; top: 10px; right: 10px; z-index: 1001; display: flex; align-items: center; gap: 10px;">
+        <div id="user-info" style="display: none; align-items: center; gap: 10px;">
+            <span id="username" style="color: white; font-weight: bold;"></span>
+            <div id="avatar" style="width: 30px; height: 30px; border-radius: 50%; background-color: #333; background-size: cover;"></div>
+        </div>
+        <button id="loginBtn" class="menu-btn">Login</button>
+        <button id="signupBtn" class="menu-btn">Sign Up</button>
+        <button id="logoutBtn" class="menu-btn" style="display: none;">Logout</button>
+    </div>
+
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1200" height="800"></canvas>
         
@@ -861,6 +963,18 @@
                         <p style="margin: 0; font-size: 0.8rem; color: #ffd700; text-align: center;">🎮 <strong>Created by Fu2</strong> 🎮</p>
                     </div>
                 </div>
+            </div>
+            
+            <div style="margin-top: 20px; padding: 15px; background: rgba(255, 0, 0, 0.15); border-radius: 8px; border: 1px solid rgba(255, 0, 0, 0.4); max-width: 600px; margin: 0 auto 2rem;">
+                <h4 style="color: #ff4444; margin: 0 0 10px 0; text-align: center;">⚠️ Photosensitivity & Seizure Warning</h4>
+                <p style="font-size: 0.8rem; text-align: center; line-height: 1.4;">This game contains bright flashing lights, rapidly changing colors, and other visual effects that may trigger seizures in individuals with photosensitive epilepsy.</p>
+            </div>
+
+            <div class="menu-section">
+                <label style="display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 1rem; cursor: pointer;">
+                    <input type="checkbox" id="disableFlashesCheck" style="transform: scale(1.3);">
+                    <span>Disable Flashing Effects (for photosensitivity)</span>
+                </label>
             </div>
             
             <div class="menu-section">
@@ -1048,6 +1162,7 @@
                 </div>
                 <div class="menu-section">
                     <button id="restoreDefaultsBtn" class="menu-btn" style="background: #00ff00;">🔄 RESTORE HIGH QUALITY DEFAULTS</button>
+                    <button id="fullscreenBtn" class="menu-btn"> expand_less FULL SCREEN</button>
                 </div>
                 
                 <div class="menu-section">
@@ -1073,6 +1188,12 @@
         <div id="leaderboardOverlay" class="menu-overlay" style="display: none;">
             <h2 class="menu-title">🏆 LEADERBOARD</h2>
             <div class="menu-section">
+                <div class="menu-buttons" style="margin-bottom: 15px;">
+                    <button class="leaderboard-filter-btn menu-btn active" data-difficulty="all">All</button>
+                    <button class="leaderboard-filter-btn menu-btn" data-difficulty="easy">Easy</button>
+                    <button class="leaderboard-filter-btn menu-btn" data-difficulty="normal">Normal</button>
+                    <button class="leaderboard-filter-btn menu-btn" data-difficulty="hard">Hard</button>
+                </div>
                 <div id="leaderboardContent" style="max-width: 600px; margin: 0 auto;">
                     <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; max-height: 60vh; overflow-y: auto;">
                         <table style="width: 100%; color: white; font-size: 0.9rem;">
@@ -1080,10 +1201,15 @@
                                 <tr style="border-bottom: 1px solid #00f0ff;">
                                     <th style="padding: 8px; text-align: left;">Rank</th>
                                     <th style="padding: 8px; text-align: left;">Name</th>
-                                    <th style="padding: 8px; text-align: right;">Score</th>
-                                    <th style="padding: 8px; text-align: center;">Wave</th>
-                                    <th style="padding: 8px; text-align: center;">Level</th>
-                                    <th style="padding: 8px; text-align: center;">Difficulty</th>
+                                    <th class="sortable-header" data-sort="score" style="padding: 8px; text-align: right; cursor: pointer;">Score</th>
+                                    <th class="sortable-header" data-sort="level" style="padding: 8px; text-align: center; cursor: pointer;">Level</th>
+                                    <th class="sortable-header" data-sort="kills" style="padding: 8px; text-align: center; cursor: pointer;">Kills</th>
+                                    <th class="sortable-header" data-sort="deaths" style="padding: 8px; text-align: center; cursor: pointer;">Deaths</th>
+                                    <th class="sortable-header" data-sort="accuracy" style="padding: 8px; text-align: center; cursor: pointer;">Accuracy</th>
+                                    <th class="sortable-header" data-sort="wave" style="padding: 8px; text-align: center; cursor: pointer;">Wave</th>
+                                    <th class="sortable-header" data-sort="difficulty" style="padding: 8px; text-align: center; cursor: pointer;">Difficulty</th>
+                                    <th class="sortable-header" data-sort="num_allies" style="padding: 8px; text-align: center; cursor: pointer;">Allies</th>
+                                    <th style="padding: 8px; text-align: center;">Details</th>
                                 </tr>
                             </thead>
                             <tbody id="leaderboardTable">
@@ -1097,7 +1223,6 @@
                 </div>
             </div>
             <div class="menu-section">
-                <button id="clearScoresBtn" class="menu-btn" style="background: #ff4444;">CLEAR SCORES</button>
                 <button id="backFromLeaderboardBtn" class="menu-btn">BACK</button>
             </div>
         </div>
@@ -1238,10 +1363,11 @@
             <!-- Mouse Sensitivity -->
             <div class="menu-section">
                 <label class="menu-label">🖱️ MOUSE SENSITIVITY & WEAPONS</label>
-                <div style="max-width: 300px; margin:                     <label>Ship Rotation Sensitivity: <span id="mouseSensitivityValue">100</span>%
+                <div style="max-width: 300px; margin: 0 auto;">
+                    <label>Ship Rotation Sensitivity: <span id="mouseSensitivityValue">100</span>%
                         <input type="range" id="mouseSensitivitySlider" class="volume-slider" min="10" max="500" value="100" style="width: 200px;">
                     </label>
- </label>
+                </div>
                     <div style="font-size: 0.8rem; color: #888; margin-top: 5px; text-align: center;">
                         Lower = slower turns, Higher = faster turns
                     </div>
@@ -1420,7 +1546,9 @@
         
         <!-- HUD -->
         <div id="hud" class="hud" style="display: none;">
-            <div class="hud-item">Score: <span id="scoreDisplay">0</span></div>
+            <div class="hud-item">Total Score: <span id="scoreDisplay">0</span></div>
+            <div class="hud-item">Personal Score: <span id="personalScoreDisplay">0</span></div>
+            <div class="hud-item">Team Score: <span id="teamScoreDisplay">0</span></div>
             <div class="hud-item">Wave: <span id="waveDisplay">1</span></div>
             <div class="hud-item">Level: <span id="levelDisplay">1</span></div>
             <div class="hud-item">HP: <span id="hpDisplay">100</span>/<span id="maxHpDisplay">100</span></div>
@@ -1431,22 +1559,54 @@
         <!-- Tail Warning -->
         <div id="tailWarning" class="warning-indicator" style="display: none;">⚠️ TAIL COLLISION IMMINENT!</div>
         
-        <!-- Game Legend -->
-        <div id="gameLegend" class="game-legend" style="display: none;">
-            <button class="legend-close" id="closeLegend">×</button>
-            <div style="margin-top: 15px;">
-                <div><strong>CONTROLS:</strong></div>
-                <div>WASD - Move</div>
-                <div>Mouse - Aim</div>
-                <div>Click - Shoot</div>
-                <div>Right Click - Charge</div>
-                <div>Shift - Boost</div>
-                <div>Wheel - Change Ammo</div>
-                <div>I - Inhibitors</div>
-                <div>Tab - Skip Song</div>
-                <div>P - Pause</div>
-                <div style="margin-top: 8px;"><strong>ALLIES:</strong></div>
-                <div>Red labels show ally names (toggle in Allies menu)</div>
+        <!-- Game Legend Left -->
+        <div id="gameLegendLeft" class="game-legend" style="display: none;">
+            <button class="legend-close" id="closeLegendLeft">×</button>
+            <h3>Controls & Gameplay Tips</h3>
+            <div class="legend-content-scrollable">
+                <section>
+                    <h4>🎮 CONTROLS</h4>
+                    <ul>
+                        <li><strong>WASD / Arrows:</strong> Move Ship</li>
+                        <li><strong>Mouse:</strong> Aim Direction</li>
+                        <li><strong>Left Click:</strong> Fire Primary Weapon</li>
+                        <li><strong>Right Click / Hold:</strong> Charge Secondary Weapon</li>
+                        <li><strong>Shift / Space:</strong> Boost (limited fuel)</li>
+                        <li><strong>Mouse Wheel:</strong> Change Ammo Type</li>
+                        <li><strong>I:</strong> Toggle Inhibitor Menu (in-game)</li>
+                        <li><strong>M:</strong> Play/Pause Music</li>
+                        <li><strong>Tab:</strong> Skip Song</li>
+                        <li><strong>P / Esc:</strong> Pause Game</li>
+                        <li><strong>Back Button (any menu):</strong> Pause/Return to Previous Menu</li>
+                    </ul>
+                </section>
+                <section>
+                    <h4>⚡ GAMEPLAY TIPS</h4>
+                    <ul>
+                        <li>Your <strong>tail</strong> damages enemies – use it as a weapon!</li>
+                        <li>Bullets bounce off walls once. Use it to your advantage.</li>
+                        <li>Avoid touching your own tail (causes damage).</li>
+                        <li>Collect power-ups dropped by enemies (Health, Shield, Weapon Boost).</li>
+                        <li>Allies will assist you, even picking up power-ups!</li>
+                        <li>Different enemy types have unique behaviors.</li>
+                        <li><strong>Inhibitors</strong> in Pre-Game Setup offer unique buffs/debuffs.</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+
+        <!-- Game Legend Right -->
+        <div id="gameLegendRight" class="game-legend" style="display: none;">
+            <button class="legend-close" id="closeLegendRight">×</button>
+            <h3>Allies Status</h3>
+            <div class="legend-content-scrollable">
+                <section>
+                    <h4>👥 ALLIES STATUS</h4>
+                    <div id="allyStatus" class="ally-status-grid">
+                        <!-- Allies will be populated by JavaScript -->
+                    </div>
+                    <p style="font-size: 0.75rem; color: #888; text-align: center; margin-top: 10px;">Ally scores reflect their contribution to team score.</p>
+                </section>
             </div>
         </div>
         
@@ -1480,7 +1640,7 @@
         </div>
         
         <!-- HUD Toggle Button -->
-        <div id="hudToggleBtn" style="position: absolute; bottom: 10px; left: 10px; z-index: 150; cursor: pointer;">
+        <div id="hudToggleBtn" style="position: absolute; bottom: 70px; right: 10px; left: auto; z-index: 150; cursor: pointer;">
             <div style="background: rgba(0, 0, 0, 0.8); border: 2px solid #00f0ff; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 20px; transition: all 0.3s; color: #00f0ff;" 
                  id="hudToggleIcon" title="Toggle HUD Visibility">
                 👁️
@@ -1489,6 +1649,10 @@
     </div>
 
     <script>
+        // Supabase Init
+        const { createClient } = supabase;
+        const supabaseClient = createClient('https://imqfnxtornlvglwvkspi.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImltcWZueHRvcm5sdmdsd3Zrc3BpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjMxMzQyNjksImV4cCI6MjA3ODcxMDI2OX0.Is7G7NCKxTQDoefyitkfhREXAR8m8cBBTjohRiBKMs4');
+
         // Game Configuration
         const GAME_CONFIG = {
             CANVAS_WIDTH: 1200,
@@ -1793,8 +1957,45 @@
             }
         };
 
+        const powerUpTypes = {
+            health: { color: '#00ff00', symbol: 'H', apply: (player) => { player.hp = Math.min(player.maxHp, player.hp + 25); showToast('+25 Health', 'success'); } },
+            shield: { color: '#00ffff', symbol: 'S', apply: (player) => { if(player.shield) player.shield = Math.min(player.maxShield, player.shield + 25); else player.shield = 25; if(!player.maxShield || player.maxShield < player.shield) player.maxShield = player.shield; showToast('+25 Shield', 'info'); } },
+            shield: { color: '#00ffff', symbol: 'S', apply: (player) => { if(player.shield) player.shield = Math.min(player.maxShield, player.shield + 25); else player.shield = 25; if(!player.maxShield || player.maxShield < player.shield) player.maxShield = player.shield; showToast('+25 Shield', 'info'); } },
+            weapon: { color: '#ff00ff', symbol: 'W', apply: (player) => { player.fireRate *= 1.5; showToast('Fire Rate Up!', 'warning'); setTimeout(() => { player.fireRate /= 1.5; showToast('Fire Rate Restored.', 'info'); }, 5000); } },
+            // New power-up: Ally Respawn
+            ally_respawn: {
+                color: '#8844ff', // Purple color
+                symbol: 'A', // 'A' for Ally
+                apply: (player) => {
+                    const activeAllies = friendlyBots.filter(bot => bot.type === 'ally');
+                    if (activeAllies.length < allyConfig.count) {
+                        // Find a missing allyIndex
+                        let missingIndex = -1;
+                        for (let i = 0; i < allyConfig.count; i++) {
+                            if (!activeAllies.some(ally => ally.allyIndex === i)) {
+                                missingIndex = i;
+                                break;
+                            }
+                        }
+                        if (missingIndex !== -1) {
+                            spawnAlly(missingIndex);
+                            showToast('Ally respawned!', 'info');
+                        } else {
+                            // This shouldn't happen if activeAllies.length < allyConfig.count
+                            showToast('No ally to respawn!', 'warning');
+                        }
+                    } else {
+                        showToast('All allies already active!', 'warning');
+                    }
+                }
+            }
+        };
+		
         // Game State
         let gameState = 'menu';
+        let gameStartTime = 0;
+        let leaderboardSort = { by: 'score', order: 'desc' };
+        let flashingEffectsDisabled = false;
         let selectedDifficulty = 'normal';
         let selectedInhibitors = [];
         let playerName = 'Player';
@@ -1886,20 +2087,70 @@
         // Settings - Default to high quality values
         let musicReactivity = 50;
         let playerGlowIntensity = 50; // New setting for player glow that responds to music
-        let visualSettings = {
-            colorPulse: true, // Enable by default
-            backgroundReact: true, // Enable by default
-            trippyEffects: true, // Enable by default
-            tailWarning: true,
-            backgroundAnimation: true, // Enable by default
-            backgroundMovement: true // Enable by default
-        };
-
+                    let visualSettings = {
+                        colorPulse: true, // Enable by default
+                        backgroundReact: true, // Enable by default
+                        trippyEffects: true, // Enable by default
+                        tailWarning: true,
+                        backgroundAnimation: true, // Enable by default
+                        backgroundMovement: true // Enable by default
+                    };
+        
+                    // Player Learning State (Adaptive AI)
+                    let playerLearningState = {
+                        playerAggression: 0.5, // 0 = passive, 1 = aggressive
+                        playerSpeed: 0.5,      // 0 = slow, 1 = fast/boosting often
+                        playerAccuracy: 0.5,   // 0 = low, 1 = high
+                        playerEvasiveness: 0.5, // 0 = direct, 1 = dodging/moving
+                        enemyKillCount: 0,      // Total enemies killed by player
+                        playerHitCount: 0,      // Times player has been hit
+                        timePlaying: 0,         // Total time player has been playing
+                        adaptiveDifficultyOffset: 0 // Overall offset to difficulty based on learning
+                    };
+        
+                    const LEARNING_STATE_KEY = 'voidDrifterLearningState';
+        
+                    function saveLearningState() {
+                        try {
+                            localStorage.setItem(LEARNING_STATE_KEY, JSON.stringify(playerLearningState));
+                            console.log('Player learning state saved.');
+                        } catch (e) {
+                            console.warn('Failed to save player learning state:', e);
+                        }
+                    }
+        
+                    function loadLearningState() {
+                        try {
+                            const savedState = localStorage.getItem(LEARNING_STATE_KEY);
+                            if (savedState) {
+                                const parsedState = JSON.parse(savedState);
+                                // Merge with defaults to ensure new properties are added
+                                Object.assign(playerLearningState, parsedState);
+                                console.log('Player learning state loaded.', playerLearningState);
+                            } else {
+                                console.log('No saved learning state found. Using defaults.');
+                            }
+                        } catch (e) {
+                            console.warn('Failed to load player learning state, using defaults:', e);
+                            // Reset to default on error
+                            playerLearningState = {
+                                playerAggression: 0.5,
+                                playerSpeed: 0.5,
+                                playerAccuracy: 0.5,
+                                playerEvasiveness: 0.5,
+                                enemyKillCount: 0,
+                                playerHitCount: 0,
+                                timePlaying: 0,
+                                adaptiveDifficultyOffset: 0
+                            };
+                        }
+                    }
         // Game Objects
         let player = null;
         let bullets = [];
         let enemies = [];
         let particles = [];
+        let powerUps = [];
         let tailSegments = [];
         let secondaryCharging = false;
         let secondaryChargeTime = 0;
@@ -1908,12 +2159,18 @@
         // Game Stats
         let gameStats = {
             score: 0,
+            playerScore: 0,
+            allyScore: 0,
             wave: 1,
             level: 1,
             enemiesKilled: 0,
+            playerHitCount: 0, // Track how many times player is hit
             hp: 100,
             maxHp: 100,
-            boostFuel: 100
+            boostFuel: 100,
+            shotsFired: 0,
+            shotsHit: 0,
+            deaths: 0
         };
 
         // Input
@@ -1924,6 +2181,8 @@
         let enemySpawnTimer = 0;
         let lastTime = 0;
         let gameTime = 0;
+        let lastSaveTime = 0; // For periodic saving of learning state
+        const SAVE_INTERVAL = 60; // Save learning state every 60 seconds
         let tailLength = 10; // Start with short tail
         let tailGrowthRate = 0.5; // Segments per second
         let maxTailLength = 150;
@@ -2239,26 +2498,40 @@
         }
         
         function updateTrackInfo() {
-            if (!youtubePlayer || !youtubeReady) return;
+            const currentTrackEl = document.getElementById('currentTrack');
+            const nextTrackEl = document.getElementById('nextTrack');
             
+            if (!currentTrackEl || !nextTrackEl) return; // Safety check
+            
+            if (!youtubePlayer || !youtubeReady || youtubePlayer.getPlayerState() === -1) { // -1 means unstarted
+                currentTrackEl.textContent = '♪ Music Player (Not Started)';
+                nextTrackEl.textContent = 'Press ▶ to begin';
+                return;
+            }
+
             try {
+                // Attempt to get video data, but be prepared for it to fail due to CORS
                 const videoData = youtubePlayer.getVideoData();
                 
-                if (videoData && videoData.title) {
-                    // Clean up title
+                if (videoData && videoData.title && videoData.title !== '') {
+                    // Clean up title (if successful)
                     let title = videoData.title;
                     title = title.replace(/\s*\(Official.*?\)/gi, '');
                     title = title.replace(/\s*\[Official.*?\]/gi, '');
                     title = title.replace(/\s*-\s*YouTube$/, '');
                     
-                    document.getElementById('currentTrack').textContent = `♪ ${title}`;
-                    document.getElementById('nextTrack').textContent = 'TV Trip Mix Active';
+                    currentTrackEl.textContent = `♪ ${title}`;
+                    nextTrackEl.textContent = 'TV Trip Mix Active';
                 } else {
-                    document.getElementById('currentTrack').textContent = 'Loading track...';
-                    document.getElementById('nextTrack').textContent = 'TV Trip Mix';
+                    // Fallback for when getVideoData fails or returns empty title (due to CORS)
+                    currentTrackEl.textContent = '♪ TV Trip Mix (Playing)';
+                    nextTrackEl.textContent = 'Next track pending...';
                 }
             } catch (e) {
-                console.warn('Error updating track info:', e);
+                console.warn('Error accessing YouTube video data (likely CORS/security):', e);
+                // More robust fallback for severe errors
+                currentTrackEl.textContent = '♪ TV Trip Mix (Playing)';
+                nextTrackEl.textContent = 'Track info unavailable';
             }
         }
 
@@ -2291,6 +2564,12 @@
             gameStats.boostFuel = 100;
             secondaryCharging = false;
             secondaryChargeTime = 0;
+
+            // Reset learning state metrics for the new game session
+            playerLearningState.enemyKillCount = 0;
+            playerLearningState.playerHitCount = 0;
+            playerLearningState.lastPlayerHitCount = 0;
+            playerLearningState.lastHitTime = 0;
         }
 
         function calculateModifiers() {
@@ -2358,13 +2637,80 @@
             return mods;
         }
 
+        function updateLearningMetrics(deltaTime) {
+            // Player Aggression: Based on firing frequency and proximity to enemies
+            // Decay previous aggression value
+            playerLearningState.playerAggression = Utils.lerp(playerLearningState.playerAggression, 0.5, 0.001 * deltaTime); // Drift to neutral over time
+
+            if (mouse.down || secondaryCharging) { // Player is actively trying to shoot
+                playerLearningState.playerAggression = Utils.lerp(playerLearningState.playerAggression, 0.7, 0.01 * deltaTime);
+            }
+            if (player.fireTimer <= 0 && (mouse.down || secondaryCharging)) { // Actual shot
+                playerLearningState.playerAggression = Utils.lerp(playerLearningState.playerAggression, 0.8, 0.02 * deltaTime);
+            }
+
+            let closestEnemyDist = Infinity;
+            enemies.forEach(enemy => {
+                closestEnemyDist = Math.min(closestEnemyDist, Utils.distance(player, enemy));
+            });
+
+            if (closestEnemyDist < player.radius * 10) { // Close to enemies
+                playerLearningState.playerAggression = Utils.lerp(playerLearningState.playerAggression, 0.75, 0.005 * deltaTime);
+            } else if (closestEnemyDist > GAME_CONFIG.CANVAS_WIDTH / 2) { // Far from enemies
+                playerLearningState.playerAggression = Utils.lerp(playerLearningState.playerAggression, 0.3, 0.001 * deltaTime);
+            }
+
+            // Player Speed/Movement: Based on boosting and overall velocity
+            playerLearningState.playerSpeed = Utils.lerp(playerLearningState.playerSpeed, 0.5, 0.001 * deltaTime); // Drift to neutral
+
+            const currentSpeedMag = Math.hypot(player.vx, player.vy);
+            const maxPlayerSpeed = player.speed * 1.8; // Max speed with boost
+            const speedRatio = Utils.clamp(currentSpeedMag / maxPlayerSpeed, 0, 1);
+            playerLearningState.playerSpeed = Utils.lerp(playerLearningState.playerSpeed, speedRatio, 0.01 * deltaTime);
+
+            if ((keys.has('shift') || keys.has(' ')) && player.boostFuel > 0) { // Boosting
+                playerLearningState.playerSpeed = Utils.lerp(playerLearningState.playerSpeed, 0.9, 0.02 * deltaTime);
+            }
+
+            // Player Accuracy: Tracked via gameStats.shotsHit / gameStats.shotsFired. Updated less frequently.
+            if (gameStats.shotsFired > 10) { // Only calculate once enough shots are fired
+                const currentAccuracy = gameStats.shotsHit / gameStats.shotsFired;
+                playerLearningState.playerAccuracy = Utils.lerp(playerLearningState.playerAccuracy, currentAccuracy, 0.005 * deltaTime);
+            }
+
+            // Player Evasiveness: Based on playerHitCount and enemy density (inverse of hits/threat)
+            // This one is trickier. For now, we'll use an inverse relationship with hit count.
+            // Decay towards neutral
+            playerLearningState.playerEvasiveness = Utils.lerp(playerLearningState.playerEvasiveness, 0.5, 0.0005 * deltaTime);
+
+            // If player has been hit, decreases evasiveness slightly, if not hit for a while, increases
+            if (gameStats.playerHitCount > playerLearningState.lastPlayerHitCount) {
+                playerLearningState.playerEvasiveness = Utils.lerp(playerLearningState.playerEvasiveness, 0.1, 0.05 * deltaTime); // Got hit, so less evasive
+            } else if (gameTime - playerLearningState.lastHitTime > 5) { // If no hit for 5 seconds, slightly more evasive
+                 playerLearningState.playerEvasiveness = Utils.lerp(playerLearningState.playerEvasiveness, 0.9, 0.001 * deltaTime);
+            }
+            playerLearningState.lastPlayerHitCount = gameStats.playerHitCount;
+            if (gameStats.playerHitCount > playerLearningState.lastPlayerHitCountAtTime) {
+                playerLearningState.lastHitTime = gameTime;
+                playerLearningState.lastPlayerHitCountAtTime = gameStats.playerHitCount;
+            }
+
+            // Update total kill count directly
+            playerLearningState.enemyKillCount = gameStats.enemiesKilled;
+        }
+
         function updatePlayer(deltaTime) {
+            updateLearningMetrics(deltaTime); // Update player learning metrics
             const mods = calculateModifiers();
             
             // Spawn allies based on configuration (main allies)
-            const alliesNeeded = allyConfig.count;
-            while (friendlyBots.length < alliesNeeded) {
-                spawnAlly();
+            const activeMainAllies = friendlyBots.filter(bot => bot.type === 'ally');
+            const currentAllyIndices = new Set(activeMainAllies.map(bot => bot.allyIndex));
+            
+            for (let i = 0; i < allyConfig.count; i++) {
+                if (!currentAllyIndices.has(i)) {
+                    spawnAlly(i); // Spawn missing ally with its correct index
+                }
             }
             
             // Spawn friendly bots from inhibitors (smaller support bots)
@@ -2647,6 +2993,7 @@
                 bullets.push({
                     x: player.x + Math.cos(player.angle) * player.radius,
                     y: player.y + Math.sin(player.angle) * player.radius,
+                    owner: player, // Added owner
                     vx: Math.cos(angle) * bulletSpeed,
                     vy: Math.sin(angle) * bulletSpeed,
                     radius: ammoStats.size,
@@ -2666,6 +3013,7 @@
                     bullets.push({
                         x: player.x + Math.cos(player.angle) * player.radius,
                         y: player.y + Math.sin(player.angle) * player.radius,
+                        owner: player, // Added owner
                         vx: Math.cos(angle + 0.3) * bulletSpeed * 0.8,
                         vy: Math.sin(angle + 0.3) * bulletSpeed * 0.8,
                         radius: Math.max(1, ammoStats.size - 1),
@@ -2681,6 +3029,7 @@
                     });
                 }
             }
+            gameStats.shotsFired += bulletCount;
 
             playSFX('hit');
             if (mods.tags.shake || ammoCustomization.type === 'explosive') {
@@ -2744,6 +3093,7 @@
             const bullet = {
                 x: player.x + Math.cos(player.angle) * player.radius,
                 y: player.y + Math.sin(player.angle) * player.radius,
+                owner: player, // Added owner
                 vx: Math.cos(player.angle) * bulletSpeed,
                 vy: Math.sin(player.angle) * bulletSpeed,
                 radius: size,
@@ -2756,6 +3106,7 @@
             };
             
             bullets.push(bullet);
+            gameStats.shotsFired++;
             
             // Explosion particles
             for (let i = 0; i < 10; i++) {
@@ -2812,22 +3163,56 @@
                 player.invulnerable = Math.max(player.invulnerable, 2.0); // Longer invulnerability
             }
             
+            // ...
+            
             player.hp -= amount;
+            if (amount > 0) { // Only increment if actual HP damage occurred
+                gameStats.playerHitCount++;
+            }
             player.invulnerable = Math.max(player.invulnerable, 1.5);
             
             addScreenShake(15, 0.25);
-            explode(player.x, player.y, 20, '#ffffff');
-            playSFX('hit');
             
             if (reason) console.log(`Player damaged: ${amount} (${reason})`);
+
+            // Flash damage overlay
+            if (!flashingEffectsDisabled) {
+                const damageOverlay = document.getElementById('damageOverlay');
+                damageOverlay.style.display = 'block';
+                setTimeout(() => {
+                    damageOverlay.style.display = 'none';
+                }, 100); // 100ms flash
+            }
         }
 
         // Enhanced Enemy System
         function spawnAdvancedEnemy() {
             const difficulty = GAME_CONFIG.DIFFICULTIES[selectedDifficulty];
             const types = ['chaser', 'orbiter', 'shooter', 'bomber', 'strafe', 'sniper'];
-            const weights = waveData.escalationPhase ? [1, 1, 2, 1, 1, 1] : [2, 2, 2, 0.5, 1, 0.3];
+            let weights = waveData.escalationPhase ? [1, 1, 2, 1, 1, 1] : [2, 2, 2, 0.5, 1, 0.3];
             
+            // Adjust weights based on player learning state
+            // If player is aggressive, increase snipers/evasive enemies
+            // If player is passive, increase chasers
+            if (playerLearningState.playerAggression > 0.7) { // Player is very aggressive
+                weights[0] *= 0.8; // Chasers slightly less (player comes to them)
+                weights[3] *= 1.2; // Bombers more
+                weights[4] *= 1.5; // Strafers more
+                weights[5] *= 1.5; // Snipers more
+            } else if (playerLearningState.playerAggression < 0.3) { // Player is passive
+                weights[0] *= 1.5; // Chasers more
+                weights[1] *= 1.2; // Orbiters more
+                weights[5] *= 0.5; // Snipers less
+            }
+            
+            // If player accuracy is high, make enemies more evasive
+            if (playerLearningState.playerAccuracy > 0.7) {
+                weights[1] *= 1.5; // Orbiters (evasive)
+                weights[4] *= 1.5; // Strafers (evasive)
+            } else if (playerLearningState.playerAccuracy < 0.3) {
+                weights[0] *= 1.2; // Chasers (easier to hit)
+            }
+
             // Weighted random selection
             let totalWeight = weights.reduce((a, b) => a + b);
             let random = Math.random() * totalWeight;
@@ -2851,7 +3236,10 @@
                 case 3: x = Utils.rand(50, GAME_CONFIG.CANVAS_WIDTH - 50); y = GAME_CONFIG.CANVAS_HEIGHT + 40; break;
             }
 
-            const baseHp = 8 + gameStats.level * 2; // Very low enemy HP for 1-2 shot kills
+            // Apply adaptive difficulty offset to enemy stats
+            const adaptiveMult = 1 + playerLearningState.adaptiveDifficultyOffset * 0.5; // Max 25% change
+            
+            const baseHp = (8 + gameStats.level * 2) * adaptiveMult;
             const enemy = {
                 x, y,
                 vx: 0, vy: 0,
@@ -2859,15 +3247,16 @@
                 radius: getEnemyRadius(type),
                 hp: baseHp * difficulty.enemyHpMult * getEnemyHpMult(type),
                 maxHp: baseHp * difficulty.enemyHpMult * getEnemyHpMult(type),
-                speed: (70 + gameStats.level * 5) * Utils.rand(0.8, 1.2) * getEnemySpeedMult(type),
-                damage: 15 * difficulty.enemyDmgMult * getEnemyDamageMult(type),
+                speed: (70 + gameStats.level * 5) * Utils.rand(0.8, 1.2) * getEnemySpeedMult(type) * adaptiveMult,
+                damage: 15 * difficulty.enemyDmgMult * getEnemyDamageMult(type) * adaptiveMult,
                 color: getEnemyColor(type),
                 fireTimer: Utils.rand(0.5, 2),
                 state: 'seek',
                 stateTimer: 0,
                 chargeTimer: 0,
                 lastPlayerPos: {x: player.x, y: player.y},
-                avoidsTail: Math.random() < 0.3 // Only 30% of enemies avoid tail
+                avoidsTail: Math.random() < 0.3, // Only 30% of enemies avoid tail
+                lastHitBy: null // Initialize last hit tracker
             };
 
             enemies.push(enemy);
@@ -2959,6 +3348,14 @@
         }
         
         function updateEnemyAI(enemy, deltaTime, distToPlayer, angleToPlayer) {
+            // Adaptive scaling for enemy speed and aggression
+            const aggressionFactor = 1 + (playerLearningState.playerAggression - 0.5) * 0.4; // 0.8 to 1.2
+            const evasivenessFactor = 1 + (playerLearningState.playerEvasiveness - 0.5) * 0.4; // 0.8 to 1.2
+            const accuracyFactor = 1 + (playerLearningState.playerAccuracy - 0.5) * 0.4; // 0.8 to 1.2
+
+            let currentEnemySpeed = enemy.speed * aggressionFactor;
+            let currentEnemyFireRate = enemy.fireRate || (enemy.type === 'sniper' ? 0.4 : 1.5);
+            
             // Tail avoidance check (only for special enemies)
             const nearbyTail = spatialHash.query(enemy.x, enemy.y, enemy.radius + 20);
             let avoidanceVector = {x: 0, y: 0};
@@ -2985,13 +3382,17 @@
                         enemy.vx = avoidanceVector.x * 2;
                         enemy.vy = avoidanceVector.y * 2;
                     } else {
-                        // Predictive chasing
-                        const leadTime = distToPlayer / enemy.speed * 0.3;
+                        // Predictive chasing with adaptive speed
+                        const leadTime = distToPlayer / currentEnemySpeed * 0.3 * evasivenessFactor; // Lead more if player is evasive
                         const targetX = player.x + player.vx * leadTime;
                         const targetY = player.y + player.vy * leadTime;
                         const leadAngle = Math.atan2(targetY - enemy.y, targetX - enemy.x);
-                        enemy.vx = Math.cos(leadAngle) * enemy.speed;
-                        enemy.vy = Math.sin(leadAngle) * enemy.speed;
+                        enemy.vx = Math.cos(leadAngle) * currentEnemySpeed;
+                        enemy.vy = Math.sin(leadAngle) * currentEnemySpeed;
+                    }
+                    // Chasers fire more often if player is aggressive and close
+                    if (playerLearningState.playerAggression > 0.6 && distToPlayer < 100) {
+                        currentEnemyFireRate *= 1.2;
                     }
                     break;
                     
@@ -3013,55 +3414,59 @@
                             enemy.vx = avoidanceVector.x;
                             enemy.vy = avoidanceVector.y;
                         } else {
-                            enemy.vx = Math.cos(angleToPlayer) * enemy.speed * 0.8;
-                            enemy.vy = Math.sin(angleToPlayer) * enemy.speed * 0.8;
+                            enemy.vx = Math.cos(angleToPlayer) * currentEnemySpeed * 0.8;
+                            enemy.vy = Math.sin(angleToPlayer) * currentEnemySpeed * 0.8;
                         }
+                    }
+                    // Bombers might explode faster if player is less evasive
+                    if (playerLearningState.playerEvasiveness < 0.4) {
+                        enemy.chargeTimer = Math.max(0, enemy.chargeTimer - deltaTime * 0.2); // Charge 20% faster
                     }
                     break;
                     
                 case 'strafe':
-                    // Circle strafe with shooting
+                    // Circle strafe with shooting, adapt strafe pattern
                     const perpAngle = angleToPlayer + Math.PI / 2;
-                    const idealDist = 120;
+                    const idealDist = 120 * evasivenessFactor; // Strafe wider if player is less evasive
                     let seekWeight = distToPlayer > idealDist ? 0.6 : 0.2;
                     if (tailThreat) {
                         enemy.vx = avoidanceVector.x;
                         enemy.vy = avoidanceVector.y;
                     } else {
-                        enemy.vx = Math.cos(angleToPlayer) * enemy.speed * seekWeight + 
-                                   Math.cos(perpAngle) * enemy.speed * (1 - seekWeight);
-                        enemy.vy = Math.sin(angleToPlayer) * enemy.speed * seekWeight + 
-                                   Math.sin(perpAngle) * enemy.speed * (1 - seekWeight);
+                        enemy.vx = Math.cos(angleToPlayer) * currentEnemySpeed * seekWeight + 
+                                   Math.cos(perpAngle) * currentEnemySpeed * (1 - seekWeight);
+                        enemy.vy = Math.sin(angleToPlayer) * currentEnemySpeed * seekWeight + 
+                                   Math.sin(perpAngle) * currentEnemySpeed * (1 - seekWeight);
                     }
                     
                     if (enemy.fireTimer <= 0 && distToPlayer < 200 && distToPlayer > 60) {
                         enemyShoot(enemy);
-                        enemy.fireTimer = 0.8;
+                        enemy.fireTimer = 0.8 / aggressionFactor; // Fire faster if player is aggressive
                     }
                     break;
                     
                 case 'sniper':
-                    // Stay at distance and charge powerful shots
-                    if (distToPlayer < 200) {
+                    // Stay at distance and charge powerful shots, adapt distance
+                    const snipeDistance = 250 * aggressionFactor; // Snipe further if player is less aggressive
+                    if (distToPlayer < snipeDistance - 50) {
                         const fleeAngle = angleToPlayer + Math.PI;
-                        enemy.vx = Math.cos(fleeAngle) * enemy.speed;
-                        enemy.vy = Math.sin(fleeAngle) * enemy.speed;
-                    } else if (distToPlayer > 350) {
-                        enemy.vx = Math.cos(angleToPlayer) * enemy.speed * 0.5;
-                        enemy.vy = Math.sin(angleToPlayer) * enemy.speed * 0.5;
+                        enemy.vx = Math.cos(fleeAngle) * currentEnemySpeed;
+                        enemy.vy = Math.sin(fleeAngle) * currentEnemySpeed;
+                    } else if (distToPlayer > snipeDistance + 50) {
+                        enemy.vx = Math.cos(angleToPlayer) * currentEnemySpeed * 0.5;
+                        enemy.vy = Math.sin(angleToPlayer) * currentEnemySpeed * 0.5;
                     } else {
                         enemy.vx *= 0.95; // Slow down to aim
                         enemy.vy *= 0.95;
                     }
                     
-                    if (enemy.fireTimer <= 0 && distToPlayer > 150 && distToPlayer < 350) {
+                    if (enemy.fireTimer <= 0 && distToPlayer > snipeDistance - 100 && distToPlayer < snipeDistance + 100) {
                         enemySniperShot(enemy);
-                        enemy.fireTimer = 2.5;
+                        enemy.fireTimer = 2.5 / accuracyFactor; // Fire faster if player is less accurate
                     }
                     break;
                     
-                default:
-                    // Default behavior (orbiter/shooter)
+                default: // Orbiter/Shooter types
                     if (enemy.type === 'orbiter') {
                         const perpAngle = angleToPlayer + Math.PI / 2;
                         const seekWeight = distToPlayer > 100 ? 0.8 : 0.3;
@@ -3069,29 +3474,29 @@
                             enemy.vx = avoidanceVector.x;
                             enemy.vy = avoidanceVector.y;
                         } else {
-                            enemy.vx = Math.cos(angleToPlayer) * enemy.speed * seekWeight + 
-                                       Math.cos(perpAngle) * enemy.speed * (1 - seekWeight);
-                            enemy.vy = Math.sin(angleToPlayer) * enemy.speed * seekWeight + 
-                                       Math.sin(perpAngle) * enemy.speed * (1 - seekWeight);
+                            enemy.vx = Math.cos(angleToPlayer) * currentEnemySpeed * seekWeight + 
+                                       Math.cos(perpAngle) * currentEnemySpeed * (1 - seekWeight);
+                            enemy.vy = Math.sin(angleToPlayer) * currentEnemySpeed * seekWeight + 
+                                       Math.sin(perpAngle) * currentEnemySpeed * (1 - seekWeight);
                         }
-                    } else {
-                        // Shooter behavior
-                        if (distToPlayer < 150) {
+                    } else { // Shooter behavior
+                        const idealShooterDistance = 180 * evasivenessFactor; // Keep ideal distance if player is less evasive
+                        if (distToPlayer < idealShooterDistance - 30) {
                             const fleeAngle = angleToPlayer + Math.PI;
-                            enemy.vx = Math.cos(fleeAngle) * enemy.speed * 0.8;
-                            enemy.vy = Math.sin(fleeAngle) * enemy.speed * 0.8;
-                        } else if (distToPlayer > 300) {
-                            enemy.vx = Math.cos(angleToPlayer) * enemy.speed * 0.6;
-                            enemy.vy = Math.sin(angleToPlayer) * enemy.speed * 0.6;
+                            enemy.vx = Math.cos(fleeAngle) * currentEnemySpeed * 0.8;
+                            enemy.vy = Math.sin(fleeAngle) * currentEnemySpeed * 0.8;
+                        } else if (distToPlayer > idealShooterDistance + 30) {
+                            enemy.vx = Math.cos(angleToPlayer) * currentEnemySpeed * 0.6;
+                            enemy.vy = Math.sin(angleToPlayer) * currentEnemySpeed * 0.6;
                         } else {
-                            const strafeAngle = angleToPlayer + Math.PI / 2 + Math.sin(gameTime) * 0.5;
-                            enemy.vx = Math.cos(strafeAngle) * enemy.speed * 0.7;
-                            enemy.vy = Math.sin(strafeAngle) * enemy.speed * 0.7;
+                            const strafeAngle = angleToPlayer + Math.PI / 2 + Math.sin(gameTime * accuracyFactor) * 0.5; // More erratic strafe if player is accurate
+                            enemy.vx = Math.cos(strafeAngle) * currentEnemySpeed * 0.7;
+                            enemy.vy = Math.sin(strafeAngle) * currentEnemySpeed * 0.7;
                         }
                         
                         if (enemy.fireTimer <= 0 && distToPlayer < 250) {
                             enemyShoot(enemy);
-                            enemy.fireTimer = 1.5;
+                            enemy.fireTimer = 1.5 / aggressionFactor; // Fire faster if player is aggressive
                         }
                     }
                     break;
@@ -3203,10 +3608,46 @@
 
         function onEnemyKilled(enemy) {
             gameStats.enemiesKilled++;
-            gameStats.score += (enemy.maxHp || 30) + gameStats.level * 10;
+            const points = (enemy.maxHp || 30) + gameStats.level * 10;
+            if (enemy.lastHitBy === 'player') {
+                gameStats.playerScore += points;
+                console.log(`Player killed enemy. Player score: ${gameStats.playerScore}`);
+            } else if (enemy.lastHitBy && (enemy.lastHitBy.type === 'ally' || enemy.lastHitBy.type === 'support')) { // Now an object
+                console.log(`Ally ${enemy.lastHitBy.allyIndex} (ID: ${enemy.lastHitBy.id}) killed enemy. Previous score: ${enemy.lastHitBy.score}`);
+                enemy.lastHitBy.score += points; // Update individual ally's score
+                gameStats.allyScore += points; // Update aggregate ally score
+                console.log(`Ally ${enemy.lastHitBy.allyIndex} (ID: ${enemy.lastHitBy.id}) new score: ${enemy.lastHitBy.score}`);
+            } else { // Default to player if not specified
+                gameStats.playerScore += points;
+                console.log(`Enemy killed by unknown/player. Player score: ${gameStats.playerScore}`);
+            }
+            gameStats.score = gameStats.playerScore + gameStats.allyScore; // Total score
             
-            explode(enemy.x, enemy.y, 15, enemy.color);
             playSFX('explosion');
+            
+            // Chance to drop a power-up
+            if (Math.random() < 0.1) { // 10% general chance to drop a power-up
+                let typeToDrop;
+                const activeMainAllies = friendlyBots.filter(bot => bot.type === 'ally');
+                
+                // If there are dead allies and random chance is good, drop ally_respawn
+                if (activeMainAllies.length < allyConfig.count && Math.random() < 0.5) { // 50% chance for ally_respawn if applicable
+                    typeToDrop = 'ally_respawn';
+                } else {
+                    // Otherwise, drop a random power-up, excluding ally_respawn if all allies are present
+                    const availablePowerUps = Object.keys(powerUpTypes).filter(type => 
+                        !(type === 'ally_respawn' && activeMainAllies.length >= allyConfig.count));
+                    typeToDrop = availablePowerUps[Math.floor(Math.random() * availablePowerUps.length)];
+                }
+                
+                powerUps.push({
+                    x: enemy.x,
+                    y: enemy.y,
+                    type: typeToDrop,
+                    radius: 8,
+                    life: 10 // 10 seconds to pick up
+                });
+            }
             
             if (enemy.radius > 12) {
                 addScreenShake(5, 0.1);
@@ -3221,6 +3662,10 @@
             let particleCount = Math.max(1, Math.floor(count * 0.3));
             if (graphicsSettings.particleQuality === 'medium') particleCount = Math.floor(particleCount * 0.7);
             else if (graphicsSettings.particleQuality === 'low') particleCount = Math.floor(particleCount * 0.4);
+
+            if (flashingEffectsDisabled) {
+                particleCount = Math.min(1, particleCount); // Drastically reduce particles
+            }
             
             // Create particles directly without pooling complexity
             for (let i = 0; i < particleCount; i++) {
@@ -3257,9 +3702,57 @@
             });
         }
 
-        // Collision System
+
+        function updatePowerUps(deltaTime) {
+            powerUps = powerUps.filter(p => {
+                if (p.collected) {
+                    p.collectionTime += deltaTime;
+                    // Animation logic here (e.g., shrink and fade)
+                    p.radius = Math.max(0, p.radius - 30 * deltaTime);
+                    p.alpha = 1 - p.collectionTime / 0.5; // 0.5 second fade out
+                    return p.collectionTime < 0.5;
+                }
+                p.life -= deltaTime;
+                // Bobbing motion
+                p.y += Math.sin(p.life * 2) * 0.2;
+                return p.life > 0;
+            });
+        }
+
+        function renderPowerUps() {
+            powerUps.forEach(p => {
+                const config = powerUpTypes[p.type];
+                ctx.save();
+                ctx.globalAlpha = p.alpha === undefined ? 1 : p.alpha;
+                ctx.fillStyle = config.color;
+                ctx.shadowColor = config.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 10px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(config.symbol, p.x, p.y);
+                ctx.restore();
+            });
+        }
+
         function handleCollisions() {
             const mods = calculateModifiers();
+
+            // Player vs Power-ups
+            for (let i = powerUps.length - 1; i >= 0; i--) {
+                const p = powerUps[i];
+                if (Utils.distance(player, p) < player.radius + p.radius && !p.collected) {
+                    p.collected = true;
+                    p.collectionTime = 0; // Start animation timer
+                    const config = powerUpTypes[p.type];
+                    config.apply(player);
+                    playSFX('pickup');
+                }
+            }
             
             // Bullets vs Enemies
             for (let i = bullets.length - 1; i >= 0; i--) {
@@ -3271,6 +3764,14 @@
                     const enemy = enemies[j];
                     
                     if (Utils.distance(bullet, enemy) < bullet.radius + enemy.radius) {
+                        if (!bullet.enemyBullet) {
+                            gameStats.shotsHit++;
+                            if (bullet.owner === player) enemy.lastHitBy = 'player';
+                            else if (bullet.owner && (bullet.owner.type === 'ally' || bullet.owner.type === 'support')) {
+                                enemy.lastHitBy = bullet.owner;
+                                console.log(`Bullet owner is ally: ${bullet.owner.id}, type: ${bullet.owner.type}, index: ${bullet.owner.allyIndex}`);
+                            }
+                        }
                         enemy.hp -= bullet.damage;
                         
                         // Explosive bullets create explosion
@@ -3336,6 +3837,20 @@
                     }
                 }
             }
+
+            // Ally vs Power-ups
+            friendlyBots.forEach(bot => {
+                for (let i = powerUps.length - 1; i >= 0; i--) {
+                    const p = powerUps[i];
+                    if (!p.collected && Utils.distance(bot, p) < bot.radius + p.radius) {
+                        p.collected = true;
+                        p.collectionTime = 0; // Start animation
+                        const config = powerUpTypes[p.type];
+                        config.apply(player); // Apply effect to the player
+                        playSFX('pickup');
+                    }
+                }
+            });
 
             // Player vs Enemies
             if (player.invulnerable <= 0) {
@@ -3534,6 +4049,16 @@
             gameStats.enemiesKilled = 0;
             gameStats.score += gameStats.wave * 100;
             
+            // --- Ally Respawn Logic ---
+            // Filter out only support bots to keep them, main allies will be respawned
+            friendlyBots = friendlyBots.filter(bot => bot.type === 'support');
+            
+            // Respawn main allies based on allyConfig.count
+            for (let i = 0; i < allyConfig.count; i++) {
+                spawnAlly(i); // Respawn each ally with its original index
+            }
+            // --- End Ally Respawn Logic ---
+            
             // Level up every 3 waves
             if (gameStats.wave % 3 === 0) {
                 gameStats.level++;
@@ -3589,6 +4114,7 @@
                 renderFriendlyBots(mods, musicIntensity);
                 renderBullets(musicIntensity);
                 renderEnemies(musicIntensity);
+                renderPowerUps();
                 
                 // Render cursor if enabled
                 if (cursorSettings.enabled) {
@@ -4429,7 +4955,32 @@
             // Reset frameCount periodically to avoid overflow
             if (frameCount > 10000) frameCount = 0;
 
+            // Update total time playing for learning state
+            playerLearningState.timePlaying += deltaTime;
+            
+            // Periodic saving of learning state
+            if (gameState === 'playing' && gameTime - lastSaveTime > SAVE_INTERVAL) {
+                saveLearningState();
+                lastSaveTime = gameTime;
+            }
+
             if (gameState === 'playing' && player !== null) {
+                // Update adaptive difficulty offset based on player learning
+                const aggressionInfluence = (playerLearningState.playerAggression - 0.5) * 0.5; // Scale -0.25 to 0.25
+                const accuracyInfluence = (playerLearningState.playerAccuracy - 0.5) * 0.5;   // Scale -0.25 to 0.25
+                const evasivenessInfluence = (playerLearningState.playerEvasiveness - 0.5) * 0.5; // Scale -0.25 to 0.25
+
+                // Combine influences. Clamp to prevent extreme values.
+                let newAdaptiveOffset = aggressionInfluence + accuracyInfluence + evasivenessInfluence;
+                newAdaptiveOffset = Utils.clamp(newAdaptiveOffset, -0.5, 0.5); // Max -0.5 to +0.5 difficulty adjustment
+
+                // Smoothly lerp towards the new offset
+                playerLearningState.adaptiveDifficultyOffset = Utils.lerp(
+                    playerLearningState.adaptiveDifficultyOffset,
+                    newAdaptiveOffset,
+                    0.0005 // Slow adaptation
+                );
+                
                 // Update screen shake
                 updateScreenShake(deltaTime);
                 
@@ -4438,6 +4989,7 @@
                 updateBullets(deltaTime);
                 updateEnemies(deltaTime);
                 updateParticles(deltaTime);
+                updatePowerUps(deltaTime);
                 
                 // Handle systems 
                 updateWaveSystem(deltaTime);
@@ -4528,10 +5080,18 @@
             });
         }
 
-        function spawnAlly() {
+        function spawnAlly(initialAllyIndex = -1) {
             const angle = Utils.rand(0, Math.PI * 2);
             const distance = Utils.rand(100, 150);
-            const allyCount = friendlyBots.filter(bot => bot.type === 'ally').length;
+            
+            // Determine the allyIndex. If provided, use it. Otherwise, find the next available index.
+            let allyCount = friendlyBots.filter(bot => bot.type === 'ally').length;
+            let currentAllyIndex = initialAllyIndex !== -1 ? initialAllyIndex : allyCount;
+
+            // Ensure we don't exceed allyConfig.count when spawning new ones.
+            if (friendlyBots.filter(bot => bot.type === 'ally').length >= allyConfig.count && initialAllyIndex === -1) {
+                return; // Don't spawn if already at max count and not respawning a specific index
+            }
             
             // Apply multipliers from customization
             const baseHp = 80;
@@ -4542,11 +5102,12 @@
             const ally = {
                 id: Date.now() + Math.random(),
                 type: 'ally',
+                name: `Ally ${currentAllyIndex + 1}`, // Assign a name based on allyIndex
                 x: player.x + Math.cos(angle) * distance,
                 y: player.y + Math.sin(angle) * distance,
                 vx: 0, vy: 0,
                 angle: 0,
-                radius: allyConfig.sizes[allyCount % allyConfig.sizes.length] || baseRadius,
+                radius: allyConfig.sizes[currentAllyIndex % allyConfig.sizes.length] || baseRadius,
                 hp: Math.floor(baseHp * allyMultipliers.hp),
                 maxHp: Math.floor(baseHp * allyMultipliers.hp),
                 speed: baseSpeed * allyMultipliers.speed,
@@ -4555,20 +5116,21 @@
                 fireTimer: Utils.rand(0, 1),
                 targetEnemy: null,
                 avoidanceTimer: 0,
-                shape: allyConfig.shapes[allyCount % allyConfig.shapes.length] || 'triangle',
+                shape: allyConfig.shapes[currentAllyIndex % allyConfig.shapes.length] || 'triangle',
                 behavior: allyConfig.behavior,
                 lastSeparationMove: 0,
-                allyIndex: allyCount, // Track which ally this is
+                allyIndex: currentAllyIndex, // Track which ally this is
                 // Add custom colors for this specific ally
-                bodyColor: allyConfig.bodyColors[allyCount % allyConfig.bodyColors.length] || '#00ff88',
-                accentColor: allyConfig.accentColors[allyCount % allyConfig.accentColors.length] || '#00ffff',
-                titleColor: allyConfig.titleColors[allyCount % allyConfig.titleColors.length] || '#ff4444',
+                bodyColor: allyConfig.bodyColors[currentAllyIndex % allyConfig.bodyColors.length] || '#00ff88',
+                accentColor: allyConfig.accentColors[currentAllyIndex % allyConfig.accentColors.length] || '#00ffff',
+                titleColor: allyConfig.titleColors[currentAllyIndex % allyConfig.titleColors.length] || '#ff4444',
                 // Ally tail settings
-                tailEnabled: allyConfig.tailEnabled[allyCount % allyConfig.tailEnabled.length] || false,
-                tailColor: allyConfig.tailColors[allyCount % allyConfig.tailColors.length] || '#00ffff',
-                tailWidth: allyConfig.tailWidths[allyCount % allyConfig.tailWidths.length] || 2,
-                tailGlow: allyConfig.tailGlows[allyCount % allyConfig.tailGlows.length] || 30,
-                tailSegments: [] // Initialize empty tail
+                tailEnabled: allyConfig.tailEnabled[currentAllyIndex % allyConfig.tailEnabled.length] || false,
+                tailColor: allyConfig.tailColors[currentAllyIndex % allyConfig.tailColors.length] || '#00ffff',
+                tailWidth: allyConfig.tailWidths[currentAllyIndex % allyConfig.tailWidths.length] || 2,
+                tailGlow: allyConfig.tailGlows[currentAllyIndex % allyConfig.tailGlows.length] || 30,
+                tailSegments: [], // Initialize empty tail
+                score: 0 // Initialize ally score
             };
             
             // Position allies: first 4 start at the corners, extras along edges
@@ -4609,6 +5171,7 @@
             ally.y = Utils.clamp(ally.y, ally.radius, GAME_CONFIG.CANVAS_HEIGHT - ally.radius);
             
             friendlyBots.push(ally);
+            friendlyBots.sort((a, b) => a.allyIndex - b.allyIndex); // Keep allies sorted by index
         }
         
         function spawnSupportBot() {
@@ -4618,6 +5181,7 @@
             const bot = {
                 id: Date.now() + Math.random(),
                 type: 'support',
+                name: `Support Bot ${friendlyBots.filter(b => b.type === 'support').length + 1}`, // Assign a name
                 x: player.x + Math.cos(angle) * distance,
                 y: player.y + Math.sin(angle) * distance,
                 vx: 0, vy: 0,
@@ -4719,16 +5283,63 @@
         function updateBotAI(bot, deltaTime, nearestEnemy, nearestDistance) {
             let targetX = player.x;
             let targetY = player.y;
-            let moveSpeed = bot.speed * 0.5;
             
+            // Base behavior influenced by player learning state
+            let currentBehavior = bot.behavior;
+
+            // Make allies more aggressive if player is passive, or more defensive if player is taking a lot of hits
+            if (playerLearningState.playerAggression < 0.4 && currentBehavior !== 'aggressive') {
+                currentBehavior = 'aggressive'; // Boost aggression if player is passive
+            } else if (playerLearningState.playerEvasiveness < 0.4 && player.hp < player.maxHp * 0.5 && currentBehavior !== 'defensive') {
+                currentBehavior = 'defensive'; // Be more defensive if player is vulnerable and not evasive
+            } else if (playerLearningState.adaptiveDifficultyOffset > 0.2 && currentBehavior === 'defensive') {
+                currentBehavior = 'balanced'; // If difficulty increases, allies can revert to balanced from defensive
+            }
+
+
             const behaviorMultiplier = {
-                'defensive': { engage: 120, flee: 80, followDistance: 60 },
-                'balanced': { engage: 180, flee: 50, followDistance: 80 },
-                'aggressive': { engage: 250, flee: 30, followDistance: 100 }
+                'defensive': { engage: 120, flee: 80, followDistance: 60, speedMult: 0.8 },
+                'balanced': { engage: 180, flee: 50, followDistance: 80, speedMult: 1.0 },
+                'aggressive': { engage: 250, flee: 30, followDistance: 100, speedMult: 1.2 }
             };
             
-            const behavior = behaviorMultiplier[bot.behavior] || behaviorMultiplier['balanced'];
+            const behavior = behaviorMultiplier[currentBehavior] || behaviorMultiplier['balanced'];
+
+            // Adjust speed based on adaptive difficulty
+            let moveSpeed = bot.speed * behavior.speedMult * (1 + playerLearningState.adaptiveDifficultyOffset * 0.2); // Allies get faster if player performs well
             
+            let nearestPowerUp = null;
+            let nearestPowerUpDist = Infinity;
+
+            powerUps.forEach(p => {
+                if (!p.collected) {
+                    const dist = Utils.distance(bot, p);
+                    if (dist < nearestPowerUpDist) {
+                        nearestPowerUp = p;
+                        nearestPowerUpDist = dist;
+                    }
+                }
+            });
+            
+            // AI decision logic:
+            // If bot health is low, prioritize health packs.
+            // Otherwise, go for any power-up if it's closer than the nearest enemy.
+            if (nearestPowerUp) {
+                const isHealthLow = bot.hp / bot.maxHp < 0.5;
+                const healthPowerUpNear = nearestPowerUp.type === 'health' && nearestPowerUpDist < 150; // Health power-up within 150px
+                const powerUpCloserThanEnemy = nearestPowerUpDist < nearestDistance;
+                
+                if ( (isHealthLow && healthPowerUpNear) || (powerUpCloserThanEnemy && nearestPowerUpDist < 100) ) { // Prioritize power-ups
+                    targetX = nearestPowerUp.x;
+                    targetY = nearestPowerUp.y;
+                    moveSpeed = bot.speed * 1.2; // Move faster to pick up
+                    
+                    // If focusing on power-up, don't shoot enemies
+                    nearestEnemy = null; 
+                    nearestDistance = Infinity;
+                }
+            }
+
             if (nearestEnemy && nearestDistance < behavior.engage) {
                 const optimalDistance = bot.type === 'ally' ? 120 : 80;
                 
@@ -4736,26 +5347,34 @@
                     // Move closer to enemy
                     targetX = nearestEnemy.x;
                     targetY = nearestEnemy.y;
-                    moveSpeed = bot.speed * (bot.behavior === 'aggressive' ? 1.3 : 1.0);
+                    moveSpeed *= (currentBehavior === 'aggressive' ? 1.3 : 1.0);
                 } else if (nearestDistance < behavior.flee) {
                     // Back away from enemy
                     const fleeAngle = Utils.angleTo(nearestEnemy, bot);
                     targetX = bot.x + Math.cos(fleeAngle) * 80;
                     targetY = bot.y + Math.sin(fleeAngle) * 80;
-                    moveSpeed = bot.speed * 1.2;
+                    moveSpeed *= 1.2;
                 } else {
                     // Circle strafe
                     const perpAngle = Utils.angleTo(bot, nearestEnemy) + Math.PI / 2;
                     targetX = bot.x + Math.cos(perpAngle) * 40;
                     targetY = bot.y + Math.sin(perpAngle) * 40;
-                    moveSpeed = bot.speed * 0.9;
+                    moveSpeed *= 0.9;
                 }
                 
-                // Enhanced shooting based on type
+                // Enhanced shooting based on type and player's accuracy
                 const maxShootDistance = bot.type === 'ally' ? 220 : 160;
+                let fireRateModifier = 1.0;
+                if (playerLearningState.playerAggression > 0.6) { // If player is aggressive, allies fire faster
+                    fireRateModifier *= 1.1;
+                }
+                if (playerLearningState.adaptiveDifficultyOffset > 0.1) { // If overall difficulty is up, allies fire faster
+                    fireRateModifier *= 1.05;
+                }
+
                 if (bot.fireTimer <= 0 && nearestDistance < maxShootDistance) {
                     botShoot(bot, nearestEnemy);
-                    bot.fireTimer = 1 / bot.fireRate;
+                    bot.fireTimer = 1 / (bot.fireRate * fireRateModifier);
                 }
             } else {
                 // Follow player behavior
@@ -4765,12 +5384,12 @@
                 if (playerDistance > followDistance + 20) {
                     targetX = player.x;
                     targetY = player.y;
-                    moveSpeed = bot.speed * (bot.behavior === 'defensive' ? 1.2 : 1.0);
+                    moveSpeed *= (currentBehavior === 'defensive' ? 1.2 : 1.0);
                 } else if (playerDistance < followDistance - 20) {
                     const awayAngle = Utils.angleTo(player, bot);
                     targetX = bot.x + Math.cos(awayAngle) * 30;
                     targetY = bot.y + Math.sin(awayAngle) * 30;
-                    moveSpeed = bot.speed * 0.7;
+                    moveSpeed *= 0.7;
                 }
             }
             
@@ -4796,6 +5415,7 @@
             bullets.push({
                 x: bot.x + Math.cos(aimAngle) * bot.radius,
                 y: bot.y + Math.sin(aimAngle) * bot.radius,
+                owner: bot, // Add this line to assign the bot as the bullet owner
                 vx: Math.cos(aimAngle) * bulletSpeed,
                 vy: Math.sin(aimAngle) * bulletSpeed,
                 radius: 2,
@@ -4831,12 +5451,40 @@
         
         function updateHUD() {
             document.getElementById('scoreDisplay').textContent = gameStats.score.toLocaleString();
+            document.getElementById('personalScoreDisplay').textContent = gameStats.playerScore.toLocaleString();
+            document.getElementById('teamScoreDisplay').textContent = gameStats.allyScore.toLocaleString();
             document.getElementById('waveDisplay').textContent = gameStats.wave;
             document.getElementById('levelDisplay').textContent = gameStats.level;
             document.getElementById('hpDisplay').textContent = gameStats.hp;
             document.getElementById('maxHpDisplay').textContent = gameStats.maxHp;
             document.getElementById('boostDisplay').textContent = gameStats.boostFuel;
             document.getElementById('enemyCountDisplay').textContent = enemies.length;
+            updateAllyStatusInLegend(); // Update ally status in legend
+        }
+
+        function updateAllyStatusInLegend() {
+            const allyStatusGrid = document.getElementById('allyStatus');
+            if (!allyStatusGrid) return;
+
+            allyStatusGrid.innerHTML = ''; // Clear previous status
+
+            if (friendlyBots.length === 0) {
+                allyStatusGrid.innerHTML = '<p style="text-align: center; color: #aaa;">No allies currently active.</p>';
+                return;
+            }
+
+            friendlyBots.forEach(bot => {
+                const allyDiv = document.createElement('div');
+                allyDiv.className = 'ally-status-item';
+                const botScore = bot.score || 0; // Use the actual score from the bot object
+                
+                allyDiv.innerHTML = `
+                    <span style="color: ${bot.titleColor || '#FFF'};">${bot.name}</span>
+                    <span>HP: ${Math.round(bot.hp)}/${Math.round(bot.maxHp)}</span>
+                    <span>Score: ${botScore.toLocaleString()}</span>
+                `;
+                allyStatusGrid.appendChild(allyDiv);
+            });
         }
         
         function updateHUDAutoHide(deltaTime) {
@@ -4871,7 +5519,6 @@
         function updateHUDVisibility() {
             const hud = document.getElementById('hud');
             const musicControls = document.getElementById('musicControls');
-            const gameLegend = document.getElementById('gameLegend');
             const hudToggleIcon = document.getElementById('hudToggleIcon');
             
             if (hud) {
@@ -4881,9 +5528,16 @@
             if (musicControls) {
                 musicControls.style.display = musicPlayerHidden ? 'none' : 'flex';
             }
-            // Only hide legend if it's currently visible
-            if (gameLegend && gameLegend.style.display !== 'none') {
-                gameLegend.style.display = hudVisible ? 'block' : 'none';
+            
+            // New logic for two legends
+            const gameLegendLeft = document.getElementById('gameLegendLeft');
+            const gameLegendRight = document.getElementById('gameLegendRight');
+
+            if (gameLegendLeft) {
+                gameLegendLeft.style.display = hudVisible ? 'block' : 'none';
+            }
+            if (gameLegendRight) {
+                gameLegendRight.style.display = hudVisible ? 'block' : 'none';
             }
             
             // Update toggle icon
@@ -4909,9 +5563,10 @@
             if (gameLegend && gameLegend.style.display !== 'none') {
                 top = gameLegend.offsetTop + gameLegend.offsetHeight + 10;
             }
-            musicControls.style.top = top + 'px';
-            musicControls.style.right = '10px';
-            musicControls.style.left = 'auto';
+            musicControls.style.bottom = '10px';
+            musicControls.style.left = '10px';
+            musicControls.style.top = 'auto'; // Ensure top is not set
+            musicControls.style.right = 'auto'; // Ensure right is not set
         }
 
         // UI Functions
@@ -4933,6 +5588,7 @@
         }
         
         function startGame() {
+            gameStartTime = performance.now();
             console.log('START GAME CLICKED!');
             console.log('Current game state:', gameState);
             
@@ -4942,20 +5598,27 @@
             
             // Reset game
             resetPlayer();
+            canvas.style.cursor = 'none'; // Hide native cursor
             console.log('Player reset:', player);
             
             bullets = [];
             enemies = [];
             particles = [];
+            powerUps = [];
             tailLength = 10; // Reset tail length
             gameStats = {
                 score: 0,
+                playerScore: 0,
+                allyScore: 0,
                 wave: 1,
                 level: 1,
                 enemiesKilled: 0,
-                hp: 100,
-                maxHp: 100,
-                boostFuel: 100
+                hp: player.maxHp,
+                maxHp: player.maxHp,
+                boostFuel: 100,
+                shotsFired: 0,
+                shotsHit: 0,
+                deaths: 0
             };
             
             enemySpawnTimer = 1;
@@ -4973,7 +5636,8 @@
             }
             
             // Show game legend
-            document.getElementById('gameLegend').style.display = 'block';
+            document.getElementById('gameLegendLeft').style.display = 'block';
+            document.getElementById('gameLegendRight').style.display = 'block';
             
             console.log('Game should be starting now! State:', gameState);
             console.log('Player position:', player ? `${player.x}, ${player.y}` : 'NULL');
@@ -4985,9 +5649,11 @@
         function pauseGame() {
             if (gameState === 'playing') {
                 gameState = 'paused';
+                canvas.style.cursor = 'default'; // Show native cursor
                 showOverlay('pauseOverlay');
             } else if (gameState === 'paused') {
                 gameState = 'playing';
+                canvas.style.cursor = 'none'; // Hide native cursor
                 hideAllOverlays();
                 document.getElementById('hud').style.display = 'block';
             }
@@ -4996,6 +5662,7 @@
         function endGame() {
             gameState = 'gameover';
             document.getElementById('hud').style.display = 'none';
+            canvas.style.cursor = 'default'; // Show native cursor
             
             // Update game over display
             document.getElementById('finalScore').textContent = gameStats.score.toLocaleString();
@@ -5005,91 +5672,165 @@
             showOverlay('gameOverOverlay');
             
             // Save high score
-            saveHighScore();
+            const playTimeInSeconds = (performance.now() - gameStartTime) / 1000;
+            saveScoreToSupabase(playTimeInSeconds);
+            saveLearningState(); // Save player learning state
         }
 
-        function saveHighScore() {
+        async function saveScoreToSupabase(playTimeInSeconds) {
             try {
-                const scores = JSON.parse(localStorage.getItem('voidDrifterScores') || '[]');
-                
-                const newScore = {
-                    name: playerName,
-                    score: gameStats.score,
-                    wave: gameStats.wave,
-                    level: gameStats.level,
-                    difficulty: selectedDifficulty,
-                    inhibitors: selectedInhibitors.slice(),
-                    date: new Date().toISOString()
-                };
-                
-                scores.push(newScore);
-                scores.sort((a, b) => b.score - a.score);
-                const topScores = scores.slice(0, 20); // Keep top 20
-                
-                localStorage.setItem('voidDrifterScores', JSON.stringify(topScores));
-                
-                // Check if this is a new high score (top 5)
-                const rank = topScores.findIndex(score => score.date === newScore.date) + 1;
-                if (rank <= 5) {
+                const { data: { user } } = await supabaseClient.auth.getUser();
+
+                if (!user) {
+                    console.log('User not logged in. Score not saved.');
                     document.getElementById('newHighScore').style.display = 'block';
-                    document.getElementById('newHighScore').textContent = `🏆 NEW HIGH SCORE! Rank #${rank} 🏆`;
-                }
-                
-            } catch (error) {
-                console.warn('Failed to save high score', error);
-            }
-        }
-        
-        function loadLeaderboard() {
-            try {
-                const scores = JSON.parse(localStorage.getItem('voidDrifterScores') || '[]');
-                const tableBody = document.getElementById('leaderboardTable');
-                const noScoresMsg = document.getElementById('noScoresMessage');
-                
-                tableBody.innerHTML = '';
-                
-                if (scores.length === 0) {
-                    noScoresMsg.style.display = 'block';
+                    document.getElementById('newHighScore').textContent = "Login to save your score!";
                     return;
                 }
                 
-                noScoresMsg.style.display = 'none';
-                
-                scores.forEach((score, index) => {
-                    const row = document.createElement('tr');
-                    row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
-                    
-                    // Rank styling
-                    let rankStyle = '';
-                    if (index === 0) rankStyle = 'color: #ffd700; font-weight: bold;'; // Gold
-                    else if (index === 1) rankStyle = 'color: #c0c0c0; font-weight: bold;'; // Silver
-                    else if (index === 2) rankStyle = 'color: #cd7f32; font-weight: bold;'; // Bronze
-                    
-                    const formattedDate = new Date(score.date).toLocaleDateString();
-                    
-                    row.innerHTML = `
-                        <td style="padding: 8px; ${rankStyle}">${index + 1}</td>
-                        <td style="padding: 8px; color: #00f0ff;">${score.name}</td>
-                        <td style="padding: 8px; text-align: right; font-weight: bold;">${score.score.toLocaleString()}</td>
-                        <td style="padding: 8px; text-align: center;">${score.wave}</td>
-                        <td style="padding: 8px; text-align: center;">${score.level}</td>
-                        <td style="padding: 8px; text-align: center; text-transform: capitalize;">${score.difficulty}</td>
-                    `;
-                    
-                    tableBody.appendChild(row);
-                });
-                
+                const accuracy = gameStats.shotsFired > 0 ? (gameStats.shotsHit / gameStats.shotsFired) * 100 : 0;
+                gameStats.deaths = 1;
+
+                const newScore = {
+                    player_id: user.id,
+                    score: Math.round(gameStats.score),
+                    level: gameStats.level,
+                    kills: gameStats.enemiesKilled,
+                    deaths: gameStats.deaths,
+                    accuracy: accuracy.toFixed(2),
+                    match_id: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }),
+                    difficulty: selectedDifficulty,
+                    selected_inhibitors: selectedInhibitors,
+                    num_allies: allyConfig.count,
+                    wave: gameStats.wave,
+                    play_time_seconds: Math.round(playTimeInSeconds),
+                    ship_shape: shipCustomization.shape,
+                    ship_body_color: shipCustomization.bodyColor,
+                    ship_accent_color: shipCustomization.accentColor,
+                    ammo_type: ammoCustomization.type,
+                    ammo_size: ammoCustomization.size,
+                    ammo_color: ammoCustomization.color,
+                    tail_width: tailCustomization.width,
+                    tail_glow: tailCustomization.glow,
+                    tail_color: tailCustomization.color,
+                    mouse_sensitivity: mouseSensitivity.toFixed(2), // Convert to fixed decimal places
+                    secondary_fire_mode: secondaryHoldMode ? 'hold' : 'tap',
+                    flashing_disabled: flashingEffectsDisabled
+                };
+
+                const { data, error } = await supabaseClient
+                    .from('voidshooter_leaderboard')
+                    .insert([newScore]);
+
+                if (error) {
+                    if (error.code === '23505') { // unique_violation
+                        console.warn('Score for this match already submitted.');
+                    } else {
+                        console.error('Error saving score:', error);
+                    }
+                    document.getElementById('newHighScore').style.display = 'none';
+                } else {
+                    console.log('Score saved successfully');
+                    document.getElementById('newHighScore').style.display = 'block';
+                    document.getElementById('newHighScore').textContent = "🏆 SCORE SAVED TO LEADERBOARD! 🏆";
+                }
             } catch (error) {
-                console.warn('Failed to load leaderboard', error);
+                console.error('Error in saveScoreToSupabase:', error);
+                document.getElementById('newHighScore').style.display = 'none';
+            }
+        }
+        
+        async function loadLeaderboard(difficultyFilter = 'all', sortBy = 'score', sortOrder = 'desc') {
+            const tableBody = document.getElementById('leaderboardTable');
+            const noScoresMsg = document.getElementById('noScoresMessage');
+            tableBody.innerHTML = '';
+            noScoresMsg.style.display = 'block';
+
+            // Update header visuals
+            document.querySelectorAll('.sortable-header').forEach(header => {
+                header.classList.remove('sorted-asc', 'sorted-desc');
+                if (header.dataset.sort === sortBy) {
+                    header.classList.add(sortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                }
+            });
+
+            try {
+                let query = supabaseClient
+                    .from('voidshooter_leaderboard')
+                    .select(`
+                        *,
+                        profiles (
+                            username
+                        )
+                    `)
+                    .order(sortBy, { ascending: sortOrder === 'asc' })
+                    .limit(20);
+
+                if (difficultyFilter !== 'all') {
+                    query = query.eq('difficulty', difficultyFilter);
+                }
+
+                const { data: scores, error } = await query;
+
+                if (error) {
+                    console.error('Error loading leaderboard:', error.message);
+                    noScoresMsg.textContent = `Error loading leaderboard: ${error.message}.`;
+                    return;
+                }
+
+                if (scores && scores.length > 0) {
+                    noScoresMsg.style.display = 'none';
+                    scores.forEach((score, index) => {
+                        const row = document.createElement('tr');
+                        row.style.borderBottom = '1px solid rgba(255,255,255,0.1)';
+                        const username = score.profiles ? score.profiles.username : 'Anonymous';
+                        
+                        let rankStyle = '';
+                        if (index === 0) rankStyle = 'color: #ffd700; font-weight: bold;'; // Gold
+                        else if (index === 1) rankStyle = 'color: #c0c0c0; font-weight: bold;'; // Silver
+                        else if (index === 2) rankStyle = 'color: #cd7f32; font-weight: bold;'; // Bronze
+                        
+                        row.innerHTML = `
+                            <td style="padding: 8px; ${rankStyle}">${index + 1}</td>
+                            <td style="padding: 8px; color: #00f0ff;">${username}</td>
+                            <td style="padding: 8px; text-align: right; font-weight: bold;">${score.score.toLocaleString()}</td>
+                            <td style="padding: 8px; text-align: center;">${score.level || '-'}</td>
+                            <td style="padding: 8px; text-align: center;">${score.kills || '-'}</td>
+                            <td style="padding: 8px; text-align: center;">${score.deaths || '-'}</td>
+                            <td style="padding: 8px; text-align: center;">${score.accuracy ? score.accuracy.toFixed(2) + '%' : '-'}</td>
+                            <td style="padding: 8px; text-align: center;">${score.wave || '-'}</td>
+                            <td style="padding: 8px; text-align: center; text-transform: capitalize;">${score.difficulty || '-'}</td>
+                            <td style="padding: 8px; text-align: center;">${score.num_allies || '0'}</td>
+                            <td style="padding: 8px; text-align: center;">
+                                <button class="menu-btn view-details-btn" data-score-id="${score.id}" style="padding: 5px 10px; font-size: 0.7rem;">View</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                    // Add event listeners for detail buttons
+                    document.querySelectorAll('.view-details-btn').forEach(button => {
+                        button.addEventListener('click', (event) => {
+                            const scoreId = event.target.dataset.scoreId;
+                            const scoreEntry = scores.find(s => s.id == scoreId); // Find the full score object
+                            showLeaderboardDetail(scoreEntry);
+                        });
+                    });
+                } else {
+                    noScoresMsg.textContent = 'No scores yet for this difficulty. Play a game to be the first!';
+                }
+
+            } catch (error) {
+                console.error('Failed to load leaderboard:', error.message || error);
+                noScoresMsg.textContent = `Failed to load leaderboard: ${error.message || 'Unknown error'}.`;
             }
         }
         
         function clearLeaderboard() {
-            if (confirm('Are you sure you want to clear all scores? This cannot be undone.')) {
-                localStorage.removeItem('voidDrifterScores');
-                loadLeaderboard();
-                showToast('Leaderboard cleared!', 'info');
-            }
+            // This button is now disabled as we don't want to allow clearing the central database.
+            showToast('Clearing the leaderboard is disabled.', 'warning');
         }
 
         function showToast(message, type = 'info', duration = 3000) {
@@ -5167,8 +5908,109 @@
                 modal.remove();
             }
         }
+        
+        function closeLegends() {
+            document.getElementById('gameLegendLeft').style.display = 'none';
+            document.getElementById('gameLegendRight').style.display = 'none';
+        }
 
         // Initialize UI
+        function showLeaderboardDetail(score) {
+            const modal = document.getElementById('leaderboardDetailModal');
+            const detailContent = document.getElementById('detailContent');
+            if (!modal || !detailContent) return;
+
+            // Format inhibitors
+            const inhibitorsList = score.selected_inhibitors && score.selected_inhibitors.length > 0
+                ? score.selected_inhibitors.map(i => `<li>${i}</li>`).join('')
+                : '<li>None</li>';
+
+            detailContent.innerHTML = `
+                <p><strong>Player:</strong> ${score.profiles ? score.profiles.username : 'Anonymous'}</p>
+                <p><strong>Score:</strong> ${score.score.toLocaleString()}</p>
+                <p><strong>Level:</strong> ${score.level}</p>
+                <p><strong>Wave:</strong> ${score.wave}</p>
+                <p><strong>Difficulty:</strong> ${score.difficulty}</p>
+                <p><strong>Kills:</strong> ${score.kills}</p>
+                <p><strong>Deaths:</strong> ${score.deaths}</p>
+                <p><strong>Accuracy:</strong> ${score.accuracy}%</p>
+                <p><strong>Play Time:</strong> ${Math.round(score.play_time_seconds / 60)}m ${Math.round(score.play_time_seconds % 60)}s</p>
+                <p><strong>Allies:</strong> ${score.num_allies}</p>
+                <h4>Ship Customization</h4>
+                <ul>
+                    <li><strong>Shape:</strong> ${score.ship_shape}</li>
+                    <li><strong>Body Color:</strong> ${score.ship_body_color}</li>
+                    <li><strong>Accent Color:</strong> ${score.ship_accent_color}</li>
+                </ul>
+                <h4>Ammo Details</h4>
+                <ul>
+                    <li><strong>Type:</strong> ${score.ammo_type}</li>
+                    <li><strong>Size:</strong> ${score.ammo_size}</li>
+                    <li><strong>Color:</strong> ${score.ammo_color}</li>
+                </ul>
+                <h4>Tail Details</h4>
+                <ul>
+                    <li><strong>Width:</strong> ${score.tail_width}</li>
+                    <li><strong>Glow:</strong> ${score.tail_glow}</li>
+                    <li><strong>Color:</strong> ${score.tail_color}</li>
+                </ul>
+                <h4>Settings</h4>
+                <ul>
+                    <li><strong>Mouse Sensitivity:</strong> ${score.mouse_sensitivity}</li>
+                    <li><strong>Secondary Fire:</strong> ${score.secondary_fire_mode === 'hold' ? 'Hold' : 'Tap'}</li>
+                    <li><strong>Flashes Disabled:</strong> ${score.flashing_disabled ? 'Yes' : 'No'}</li>
+                </ul>
+                <h4>Inhibitors Used</h4>
+                <ul>${inhibitorsList}</ul>
+                <p style="font-size: 0.75rem; color: #888; margin-top: 10px;">Recorded: ${new Date(score.created_at).toLocaleString()}</p>
+            `;
+
+            modal.style.display = 'flex';
+        }
+
+
+
+        // Function to toggle fullscreen mode
+        function toggleFullscreen() {
+            const gameContainer = document.getElementById('gameContainer');
+            if (!document.fullscreenElement) {
+                if (gameContainer.requestFullscreen) {
+                    gameContainer.requestFullscreen();
+                } else if (gameContainer.mozRequestFullScreen) { // Firefox
+                    gameContainer.mozRequestFullScreen();
+                } else if (gameContainer.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                    gameContainer.webkitRequestFullscreen();
+                } else if (gameContainer.msRequestFullscreen) { // IE/Edge
+                    gameContainer.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { // Firefox
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { // Chrome, Safari and Opera
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { // IE/Edge
+                    document.msExitFullscreen();
+                }
+            }
+        }
+
+        // Adjust canvas resolution automatically on fullscreen change
+        document.addEventListener('fullscreenchange', () => {
+            if (document.fullscreenElement) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            } else {
+                canvas.width = GAME_CONFIG.CANVAS_WIDTH;
+                canvas.height = GAME_CONFIG.CANVAS_HEIGHT;
+            }
+            // Re-center player or adjust game view if necessary
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+        });
+
+
         function initializeUI() {
             // Populate inhibitors
             const inhibitorsGrid = document.getElementById('inhibitorsGrid');
@@ -5276,13 +6118,31 @@
             });
             
             // Agreement handling
+            document.getElementById('disableFlashesCheck').addEventListener('change', (e) => {
+                flashingEffectsDisabled = e.target.checked;
+                if (flashingEffectsDisabled) {
+                    graphicsSettings.screenShake = false;
+                    visualSettings.trippyEffects = false;
+                    visualSettings.colorPulse = false;
+                    showToast('Flashing effects disabled.', 'info');
+                } else {
+                    graphicsSettings.screenShake = true;
+                    visualSettings.trippyEffects = true;
+                    visualSettings.colorPulse = true;
+                    showToast('Flashing effects enabled.', 'info');
+                }
+            });
+
             document.getElementById('agreementCheck').addEventListener('change', (e) => {
+                console.log("Agreement checkbox changed. Checked:", e.target.checked);
                 const acceptBtn = document.getElementById('acceptAgreementBtn');
                 if (e.target.checked) {
+                    console.log("Enabling accept button.");
                     acceptBtn.disabled = false;
                     acceptBtn.style.opacity = '1';
                     acceptBtn.style.cursor = 'pointer';
                 } else {
+                    console.log("Disabling accept button.");
                     acceptBtn.disabled = true;
                     acceptBtn.style.opacity = '0.5';
                     acceptBtn.style.cursor = 'not-allowed';
@@ -5290,10 +6150,16 @@
             });
             
             document.getElementById('acceptAgreementBtn').addEventListener('click', () => {
+                console.log("Accept agreement button clicked");
                 if (document.getElementById('agreementCheck').checked) {
+                    console.log("Agreement checkbox is checked");
                     // Store agreement acceptance
                     localStorage.setItem('voidDrifterAgreement', 'accepted');
+                    console.log("Agreement stored in localStorage");
                     showMainMenu();
+                    console.log("showMainMenu() called");
+                } else {
+                    console.log("Agreement checkbox is NOT checked");
                 }
             });
             
@@ -5318,21 +6184,27 @@
                 showOverlay('customizationOverlay');
             });
             document.getElementById('backFromSettingsBtn').addEventListener('click', () => {
-                if (gameState === 'paused') {
+                if (gameState === 'playing') {
+                    pauseGame();
+                } else if (gameState === 'paused') {
                     showOverlay('pauseOverlay');
                 } else {
                     showOverlay('menuOverlay');
                 }
             });
             document.getElementById('backFromInhibitorsBtn').addEventListener('click', () => {
-                if (gameState === 'paused') {
+                if (gameState === 'playing') {
+                    pauseGame();
+                } else if (gameState === 'paused') {
                     showOverlay('pauseOverlay');
                 } else {
                     showOverlay('preStartOverlay');
                 }
             });
             document.getElementById('backFromCustomizationBtn').addEventListener('click', () => {
-                if (gameState === 'paused') {
+                if (gameState === 'playing') {
+                    pauseGame();
+                } else if (gameState === 'paused') {
                     showOverlay('pauseOverlay');
                 } else {
                     showOverlay('menuOverlay');
@@ -5362,7 +6234,13 @@
             document.getElementById('alliesBtn').addEventListener('click', () => {
                 showOverlay('alliesOverlay');
             });
-            document.getElementById('backFromAlliesBtn').addEventListener('click', () => showOverlay('preStartOverlay'));
+            document.getElementById('backFromAlliesBtn').addEventListener('click', () => {
+                if (gameState === 'playing') {
+                    pauseGame();
+                } else {
+                    showOverlay('preStartOverlay');
+                }
+            });
             
             // Ally names toggle (moved to Ally Customization)
             const allyNamesToggleCustom = document.getElementById('allyNamesToggleCustom');
@@ -5401,7 +6279,11 @@
             
             // Back from ally customization
             document.getElementById('backFromAllyCustomizationBtn').addEventListener('click', () => {
-                showOverlay('alliesOverlay');
+                if (gameState === 'playing') {
+                    pauseGame();
+                } else {
+                    showOverlay('alliesOverlay');
+                }
             });
             
             // Leaderboard
@@ -5409,18 +6291,48 @@
                 loadLeaderboard();
                 showOverlay('leaderboardOverlay');
             });
-            document.getElementById('backFromLeaderboardBtn').addEventListener('click', () => showOverlay('menuOverlay'));
+            document.getElementById('backFromLeaderboardBtn').addEventListener('click', () => {
+                if (gameState === 'playing') {
+                    pauseGame();
+                } else {
+                    showOverlay('menuOverlay');
+                }
+            });
             document.getElementById('viewLeaderboardBtn').addEventListener('click', () => {
                 loadLeaderboard();
                 showOverlay('leaderboardOverlay');
             });
-            document.getElementById('clearScoresBtn').addEventListener('click', clearLeaderboard);
+            document.querySelectorAll('.leaderboard-filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.leaderboard-filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const difficulty = btn.dataset.difficulty;
+                    loadLeaderboard(difficulty, leaderboardSort.by, leaderboardSort.order);
+                });
+            });
+            document.querySelectorAll('.sortable-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const sortBy = header.dataset.sort;
+                    if (leaderboardSort.by === sortBy) {
+                        leaderboardSort.order = leaderboardSort.order === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        leaderboardSort.by = sortBy;
+                        leaderboardSort.order = 'desc'; // Default to descending for new column
+                    }
+                    const currentDifficulty = document.querySelector('.leaderboard-filter-btn.active').dataset.difficulty;
+                    loadLeaderboard(currentDifficulty, leaderboardSort.by, leaderboardSort.order);
+                });
+            });
             
             // Credits button
             document.getElementById('creditsBtn').addEventListener('click', showCredits);
             
             // Restore defaults button
             document.getElementById('restoreDefaultsBtn').addEventListener('click', restoreHighQualityDefaults);
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            if (fullscreenBtn) {
+                fullscreenBtn.addEventListener('click', toggleFullscreen);
+            }
             
             // Cursor/crosshair settings
             const cursorEnabledToggle = document.getElementById('cursorEnabledToggle');
@@ -5494,6 +6406,14 @@
                     updateHUDVisibility();
                 });
             }
+
+            // Close legend buttons
+            document.getElementById('closeLegendLeft').addEventListener('click', closeLegends);
+            document.getElementById('closeLegendRight').addEventListener('click', closeLegends);
+
+            // Initially hide the legends
+            document.getElementById('gameLegendLeft').style.display = 'none';
+            document.getElementById('gameLegendRight').style.display = 'none';
         }
         
         // Restore High Quality Defaults Function
@@ -6409,9 +7329,7 @@
                 
                 if (e.key.toLowerCase() === 'escape' || e.key.toLowerCase() === 'p') {
                     e.preventDefault();
-                    if (gameState === 'playing') {
-                        pauseGame();
-                    }
+                    pauseGame();
                 }
                 
                 // Music controls
@@ -6521,127 +7439,6 @@
         }
 
         // Simple collision detection without spatial grid
-        function handleCollisions() {
-            const mods = calculateModifiers();
-            
-            // Bullets vs Enemies
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const bullet = bullets[i];
-                if (bullet.enemyBullet) continue;
-                
-                let bulletRemoved = false;
-                for (let j = enemies.length - 1; j >= 0; j--) {
-                    const enemy = enemies[j];
-                    
-                    if (Utils.distance(bullet, enemy) < bullet.radius + enemy.radius) {
-                        enemy.hp -= bullet.damage;
-                        
-                        // Explosive bullets create explosion
-                        if (bullet.explosive) {
-                            explode(enemy.x, enemy.y, 8, bullet.color);
-                            // Damage nearby enemies
-                            enemies.forEach(nearEnemy => {
-                                if (nearEnemy !== enemy && Utils.distance(enemy, nearEnemy) < 40) {
-                                    nearEnemy.hp -= bullet.damage * 0.5;
-                                }
-                            });
-                            addScreenShake(4, 0.1);
-                        } else {
-                            explode(enemy.x, enemy.y, 3, bullet.color);
-                        }
-                        
-                        playSFX(bullet.explosive ? 'explosion' : 'hit');
-                        gameStats.score += Math.floor(bullet.damage);
-                        
-                        // Piercing bullets don't get removed on first hit
-                        if (!bullet.piercing) {
-                            bullets.splice(i, 1);
-                            bulletRemoved = true;
-                        } else {
-                            bullet.damage *= 0.8;
-                        }
-                        break;
-                    }
-                }
-                
-                if (bulletRemoved) continue;
-            }
-
-            // Enemy bullets vs Player and friendly bots
-            for (let i = bullets.length - 1; i >= 0; i--) {
-                const bullet = bullets[i];
-                if (!bullet.enemyBullet) continue;
-                
-                // Check collision with player
-                if (player.invulnerable <= 0 && 
-                    Utils.distance(bullet, player) < bullet.radius + player.radius) {
-                    damagePlayer(bullet.damage, 'Enemy bullet');
-                    bullets.splice(i, 1);
-                    continue;
-                }
-                
-                // Check collision with friendly bots
-                for (let j = friendlyBots.length - 1; j >= 0; j--) {
-                    const bot = friendlyBots[j];
-                    if (Utils.distance(bullet, bot) < bullet.radius + bot.radius) {
-                        bot.hp -= bullet.damage;
-                        bullets.splice(i, 1);
-                        
-                        explode(bot.x, bot.y, 5, '#00ff88');
-                        playSFX('hit');
-                        
-                        if (bot.hp <= 0) {
-                            friendlyBots.splice(j, 1);
-                            explode(bot.x, bot.y, 12, '#00ff88');
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // Player vs Enemies
-            if (player.invulnerable <= 0) {
-                enemies.forEach(enemy => {
-                    if (Utils.distance(player, enemy) < player.radius + enemy.radius - 3) {
-                        damagePlayer(enemy.damage || 20, `Hit by ${enemy.type || 'enemy'}`);
-                    }
-                });
-            }
-            
-            // Tail vs Enemies (check every 3rd frame for performance)
-            if (frameCount % 3 === 0) {
-                const baseTailDamage = 30 + mods.effects.tailBoost * 30;
-                const tailDamage = baseTailDamage * 0.048; // Compensate for checking less frequently
-                
-                enemies.forEach(enemy => {
-                    for (let i = 0; i < tailSegments.length - 1; i += 2) {
-                        const seg1 = tailSegments[i];
-                        const seg2 = tailSegments[i + 1] || seg1;
-                        const distance = Utils.distPointToSegment(enemy, seg1, seg2);
-                        
-                        if (distance < enemy.radius + 3) {
-                            enemy.hp -= tailDamage;
-                            
-                            if (Math.random() < 0.05) {
-                                particles.push({
-                                    x: enemy.x + (Math.random() - 0.5) * 20,
-                                    y: enemy.y + (Math.random() - 0.5) * 20,
-                                    vx: (Math.random() - 0.5) * 100,
-                                    vy: (Math.random() - 0.5) * 100,
-                                    radius: 3,
-                                    color: mods.tags.toxic ? '#00ff00' : '#00ffff',
-                                    life: 0.5,
-                                    maxLife: 0.5,
-                                    alpha: 1,
-                                    active: true
-                                });
-                            }
-                            break;
-                        }
-                    }
-                });
-            }
-        }
         
         
         // Initialize Game with optimizations
@@ -6652,15 +7449,10 @@
             initializeUIExtensions(); // Initialize the orphaned UI code
             setupInput();
             updateInhibitorLimits();
+            loadLearningState(); // Load player learning state on init
             
-            // Check if user has already accepted agreement
-            const agreementAccepted = localStorage.getItem('voidDrifterAgreement');
-            if (agreementAccepted === 'accepted') {
-                showMainMenu();
-            } else {
-                // Show agreement first
-                showOverlay('agreementOverlay');
-            }
+            // This is now handled by checkUserAndShowAgreement
+            // which is called at the end of the second script tag.
             
             // Start game loop
             lastTime = performance.now();
@@ -6689,13 +7481,10 @@
             let isDragging = false;
             let dragOffset = { x: 0, y: 0 };
             
-            // Make draggable by header or main container
-            const dragTriggers = [header];
+            const dragTriggers = [header, musicControls]; // Allow dragging by header or body
             
-            let dragContainerRect = null;
             dragTriggers.forEach(trigger => {
                 trigger.addEventListener('mousedown', (e) => {
-                    // Don't drag when clicking close button or control buttons
                     if (e.target.classList.contains('music-controls-close') || 
                         e.target.classList.contains('music-btn') ||
                         e.target.classList.contains('volume-slider')) {
@@ -6703,12 +7492,10 @@
                     }
                     
                     isDragging = true;
+                    musicControlsMoved = true; // User has taken control
                     const rect = musicControls.getBoundingClientRect();
                     dragOffset.x = e.clientX - rect.left;
                     dragOffset.y = e.clientY - rect.top;
-                    
-                    const container = document.getElementById('gameContainer');
-                    dragContainerRect = container.getBoundingClientRect();
                     
                     musicControls.style.transition = 'none';
                     document.body.style.userSelect = 'none';
@@ -6718,87 +7505,184 @@
             
             document.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
-                if (!dragContainerRect) return;
                 
-                const newX = e.clientX - dragContainerRect.left - dragOffset.x;
-                const newY = e.clientY - dragContainerRect.top - dragOffset.y;
+                const newX = e.clientX - dragOffset.x;
+                const newY = e.clientY - dragOffset.y;
                 
-                const container = document.getElementById('gameContainer');
-                // Keep within container bounds
-                const maxX = container.clientWidth - musicControls.offsetWidth;
-                const maxY = container.clientHeight - musicControls.offsetHeight;
+                const maxX = window.innerWidth - musicControls.offsetWidth;
+                const maxY = window.innerHeight - musicControls.offsetHeight;
                 
-                // Determine top limit to avoid overlapping the game legend
-                const gameLegend = document.getElementById('gameLegend');
-                let topLimit = 10;
-                if (gameLegend && gameLegend.style.display !== 'none') {
-                    topLimit = gameLegend.offsetTop + gameLegend.offsetHeight + 10;
-                }
-                // Avoid overlapping HUD on the left if visible
-                const hud = document.getElementById('hud');
-                let leftLimit = 10;
-                if (hud && hud.style.display !== 'none') {
-                    const hudRect = hud.getBoundingClientRect();
-                    leftLimit = Math.max(leftLimit, (hudRect.right - dragContainerRect.left) + 10);
-                }
-                
-                const constrainedX = Math.max(leftLimit, Math.min(newX, maxX));
-                const constrainedY = Math.max(topLimit, Math.min(newY, maxY));
+                const constrainedX = Math.max(0, Math.min(newX, maxX));
+                const constrainedY = Math.max(0, Math.min(newY, maxY));
                 
                 musicControls.style.left = constrainedX + 'px';
                 musicControls.style.top = constrainedY + 'px';
-                musicControls.style.right = 'auto';
                 musicControls.style.bottom = 'auto';
+                musicControls.style.right = 'auto';
             });
             
             document.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    musicControls.style.transition = '';
-                    document.body.style.userSelect = '';
-                    musicControlsMoved = true;
-                    dragContainerRect = null;
-                }
+                isDragging = false;
+                document.body.style.userSelect = '';
+                musicControls.style.transition = '';
             });
             
-            // Close button functionality
-            closeBtn.addEventListener('click', () => {
-                if (musicPlayerHidden) {
-                    // Show music controls
-                    musicControls.style.display = 'flex';
-                    musicPlayerHidden = false;
-                    showToast('Music controls restored', 'info', 2000);
-                    repositionMusicControls();
-                } else {
-                    // Hide music controls
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
                     musicControls.style.display = 'none';
                     musicPlayerHidden = true;
-                    showToast('Music controls hidden - refresh page to restore', 'info', 3000);
-                }
-            });
+                });
+            }
 
-            // Resize observer to toggle expanded info
             if ('ResizeObserver' in window) {
                 const ro = new ResizeObserver(entries => {
                     for (const entry of entries) {
-                        const cr = entry.contentRect;
-                        if (cr.width > 380 || cr.height > 120) {
-                            musicControls.classList.add('expanded');
-                        } else {
-                            musicControls.classList.remove('expanded');
-                        }
+                        const width = entry.contentRect.width;
+                        musicControls.classList.toggle('expanded', width > 300);
+
+                        // Auto-scale font
+                        const baseWidth = 360; // The original width
+                        const baseFontSize = 12; // The original font size
+                        const newFontSize = Math.max(8, (width / baseWidth) * baseFontSize);
+                        musicControls.style.fontSize = `${newFontSize}px`;
                     }
                 });
                 ro.observe(musicControls);
             }
         }
-        
+
         // Start the game when page loads
         document.addEventListener('DOMContentLoaded', () => {
             init();
             makeMusicControlsDraggable();
             repositionMusicControls();
+            window.addEventListener('beforeunload', saveLearningState); // Save learning state before unload
+
+            // --- Auth Logic ---
+            const loginBtn = document.getElementById('loginBtn');
+            const signupBtn = document.getElementById('signupBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            loginBtn.addEventListener('click', () => {
+                window.location.href = 'login.html';
+            });
+
+            signupBtn.addEventListener('click', () => {
+                window.location.href = 'signup.html';
+            });
+
+            logoutBtn.addEventListener('click', async () => {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) {
+                    alert(error.message);
+                } else {
+                    localStorage.removeItem('voidDrifterAgreement');
+                    await updateUIForUser(null);
+                    showOverlay('agreementOverlay');
+                }
+            });
+
+            async function checkUserAndShowAgreement() {
+                const agreementAccepted = localStorage.getItem('voidDrifterAgreement');
+                
+                const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
+
+                if (sessionError) {
+                    console.error("Error getting session:", sessionError);
+                    showOverlay('agreementOverlay'); // Show agreement as a fallback
+                    return;
+                }
+
+                await updateUIForUser(session?.user);
+
+                if (agreementAccepted === 'accepted' || session?.user) {
+                    if(session?.user && agreementAccepted !== 'accepted'){
+                        localStorage.setItem('voidDrifterAgreement', 'accepted');
+                    }
+                    showMainMenu();
+                } else {
+                    showOverlay('agreementOverlay');
+                }
+            }
+
+            async function updateUIForUser(user) {
+                const userInfo = document.getElementById('user-info');
+                const usernameEl = document.getElementById('username');
+                const avatarEl = document.getElementById('avatar');
+
+                try {
+                    if (user) {
+                        loginBtn.style.display = 'none';
+                        signupBtn.style.display = 'none';
+                        logoutBtn.style.display = 'block';
+                        userInfo.style.display = 'flex';
+
+                        // Fetch profile
+                        const { data: profile, error } = await supabaseClient
+                            .from('profiles')
+                            .select('username, avatar_url')
+                            .eq('id', user.id)
+                            .single();
+
+                        if (error) {
+                            console.error("Error fetching profile:", error);
+                        }
+
+                        if (profile) {
+                            usernameEl.textContent = profile.username || 'Player';
+                            document.getElementById('playerNameInput').value = profile.username || 'Player';
+                            if (profile.avatar_url) {
+                                avatarEl.style.backgroundImage = `url(${profile.avatar_url})`;
+                            }
+                        } else {
+                            usernameEl.textContent = 'Player';
+                            document.getElementById('playerNameInput').value = 'Player';
+                        }
+
+                    } else {
+                        loginBtn.style.display = 'block';
+                        signupBtn.style.display = 'block';
+                        logoutBtn.style.display = 'none';
+                        userInfo.style.display = 'none';
+                    }
+                } catch (err) {
+                    console.error("Error in updateUIForUser:", err);
+                    loginBtn.style.display = 'block';
+                    signupBtn.style.display = 'block';
+                    logoutBtn.style.display = 'none';
+                    userInfo.style.display = 'none';
+                }
+            }
+
+            (async () => {
+                try {
+                    await checkUserAndShowAgreement();
+                } catch (error) {
+                    console.error("Error during initial user check:", error);
+                    showOverlay('agreementOverlay');
+                }
+            })();
         });
     </script>
-</body>
+        <!-- Leaderboard Detail Modal -->
+        <div id="leaderboardDetailModal" class="menu-overlay" style="display: none;">
+            <div class="menu-content" style="max-width: 600px; padding: 20px;">
+                <h2 class="menu-title">Score Details</h2>
+                <div id="detailContent" style="text-align: left; font-size: 0.9rem;">
+                    <!-- Details will be populated here by JavaScript -->
+                </div>
+                <div class="menu-section" style="margin-top: 20px;">
+                    <button id="closeDetailModalBtn" class="menu-btn">CLOSE</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            const closeDetailModalBtn = document.getElementById('closeDetailModalBtn');
+            if (closeDetailModalBtn) {
+                closeDetailModalBtn.addEventListener('click', () => {
+                    document.getElementById('leaderboardDetailModal').style.display = 'none';
+                });
+            }
+        </script>
+    </body>
 </html>
