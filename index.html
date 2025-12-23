@@ -3611,15 +3611,11 @@
             const points = (enemy.maxHp || 30) + gameStats.level * 10;
             if (enemy.lastHitBy === 'player') {
                 gameStats.playerScore += points;
-                console.log(`Player killed enemy. Player score: ${gameStats.playerScore}`);
             } else if (enemy.lastHitBy && (enemy.lastHitBy.type === 'ally' || enemy.lastHitBy.type === 'support')) { // Now an object
-                console.log(`Ally ${enemy.lastHitBy.allyIndex} (ID: ${enemy.lastHitBy.id}) killed enemy. Previous score: ${enemy.lastHitBy.score}`);
                 enemy.lastHitBy.score += points; // Update individual ally's score
                 gameStats.allyScore += points; // Update aggregate ally score
-                console.log(`Ally ${enemy.lastHitBy.allyIndex} (ID: ${enemy.lastHitBy.id}) new score: ${enemy.lastHitBy.score}`);
             } else { // Default to player if not specified
                 gameStats.playerScore += points;
-                console.log(`Enemy killed by unknown/player. Player score: ${gameStats.playerScore}`);
             }
             gameStats.score = gameStats.playerScore + gameStats.allyScore; // Total score
             
@@ -3767,10 +3763,7 @@
                         if (!bullet.enemyBullet) {
                             gameStats.shotsHit++;
                             if (bullet.owner === player) enemy.lastHitBy = 'player';
-                            else if (bullet.owner && (bullet.owner.type === 'ally' || bullet.owner.type === 'support')) {
-                                enemy.lastHitBy = bullet.owner;
-                                console.log(`Bullet owner is ally: ${bullet.owner.id}, type: ${bullet.owner.type}, index: ${bullet.owner.allyIndex}`);
-                            }
+                            else if (bullet.owner && (bullet.owner.type === 'ally' || bullet.owner.type === 'support')) enemy.lastHitBy = bullet.owner;
                         }
                         enemy.hp -= bullet.damage;
                         
